@@ -7,7 +7,6 @@ public static class Configuration
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services)
     {
-
         return services;
     }
 }

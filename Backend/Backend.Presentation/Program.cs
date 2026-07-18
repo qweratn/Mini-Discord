@@ -11,7 +11,7 @@ builder.Services.AddInfrastructure();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo {Title = "Mini-Discord", Version = "v1"});
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Mini-Discord", Version = "v1" });
 });
 
 WebApplication app = builder.Build();
