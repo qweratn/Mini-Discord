@@ -5,7 +5,7 @@ namespace Backend.Domain.GuildMembership;
 /// <summary>
 /// Relationship between a user and a guild, representing the user's membership in the guild.
 /// </summary>
-public class GuildMembership : AggregateRoot
+public class ChatMembership : AggregateRoot
 {
     public Guid GuildId { get; private set; }
 
@@ -13,18 +13,18 @@ public class GuildMembership : AggregateRoot
 
     public DateTimeOffset JoinedAt { get; private set; }
 
-    public GuildMembership()
+    public ChatMembership()
     {
     }
 
-    public GuildMembership(Guid guildId, Guid memberId)
+    public ChatMembership(Guid guildId, Guid memberId)
     {
         GuildId = guildId;
         MemberId = memberId;
         JoinedAt = DateTimeOffset.Now;
     }
 
-    public static GuildMembership Create(Guid guildId, Guid memberId)
+    public static ChatMembership Create(Guid guildId, Guid memberId)
     {
         if (guildId == Guid.Empty)
         {
@@ -36,14 +36,14 @@ public class GuildMembership : AggregateRoot
             throw new DomainException("Member ID cannot be empty.");
         }
 
-        GuildMembership guildMembership = new GuildMembership(guildId, memberId);
+        ChatMembership chatMembership = new ChatMembership(guildId, memberId);
 
-        guildMembership.AddDomainEvent(
-            new GuildMemberJoinedDomainEvent(
-                guildMembership.GuildId,
-                guildMembership.MemberId,
-                guildMembership.JoinedAt));
+        chatMembership.AddDomainEvent(
+            new ChatMemberJoinedDomainEvent(
+                chatMembership.GuildId,
+                chatMembership.MemberId,
+                chatMembership.JoinedAt));
 
-        return guildMembership;
+        return chatMembership;
     }
 }
