@@ -1,14 +1,14 @@
 using Backend.Domain.Common;
 using Backend.Domain.Enums;
 
-namespace Backend.Domain.Guild;
+namespace Backend.Domain.Chats;
 
 /// <summary>
-/// Guild (server).
+/// Chat.
 /// </summary>
 public class Chat : AggregateRoot
 {
-    private const int MaxGuildNameLength = 64;
+    private const int MaxServerNameLength = 64;
 
     public Guid Id { get; private set; }
 
@@ -47,12 +47,12 @@ public class Chat : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new DomainException("Guild name cannot be empty.");
+            throw new DomainException("Server name cannot be empty.");
         }
 
-        if (name.Length > MaxGuildNameLength)
+        if (name.Length > MaxServerNameLength)
         {
-            throw new DomainException($"Guild name cannot exceed {MaxGuildNameLength} characters.");
+            throw new DomainException($"Server name cannot exceed {MaxServerNameLength} characters.");
         }
 
         if (ownerId == Guid.Empty)

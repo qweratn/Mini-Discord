@@ -1,6 +1,6 @@
 using Backend.Domain.Common;
 
-namespace Backend.Domain.User;
+namespace Backend.Domain.Users;
 
 /// <summary>
 /// User.

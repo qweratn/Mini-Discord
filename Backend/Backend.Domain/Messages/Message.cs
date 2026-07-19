@@ -1,6 +1,6 @@
 using Backend.Domain.Common;
 
-namespace Backend.Domain.Message;
+namespace Backend.Domain.Messages;
 
 public class Message : AggregateRoot
 {
@@ -12,7 +12,7 @@ public class Message : AggregateRoot
 
     public Guid AuthorId { get; private set; }
 
-    public Guid GuildId { get; private set; }
+    public Guid ChatId { get; private set; }
 
     public DateTimeOffset SendAt { get; private set; }
 
@@ -20,18 +20,18 @@ public class Message : AggregateRoot
     {
     }
 
-    public Message(string content, Guid authorId, Guid guildId)
+    public Message(string content, Guid authorId, Guid chatId)
     {
         Id = Guid.NewGuid();
         Content = content;
         AuthorId = authorId;
-        GuildId = guildId;
+        ChatId = chatId;
         SendAt = DateTimeOffset.UtcNow;
     }
 
-    public static Message Create(string content, Guid authorId, Guid guildId)
+    public static Message Create(string content, Guid authorId, Guid chatId)
     {
-        if (guildId == Guid.Empty)
+        if (chatId == Guid.Empty)
         {
             throw new DomainException("Chat is required.");
         }
@@ -51,10 +51,10 @@ public class Message : AggregateRoot
             throw new DomainException($"Message cannot exceed {MaxContentLength} characters.");
         }
 
-        Message msg = new Message(content, authorId, guildId);
+        Message msg = new Message(content, authorId, chatId);
 
         msg.AddDomainEvent(
-            new MessageSentDomainEvent(msg.Content, msg.AuthorId, msg.GuildId, msg.SendAt));
+            new MessageSentDomainEvent(msg.Content, msg.AuthorId, msg.ChatId, msg.SendAt));
 
         return msg;
     }

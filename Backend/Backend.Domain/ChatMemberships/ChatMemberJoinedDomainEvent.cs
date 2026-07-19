@@ -1,11 +1,11 @@
 using Backend.Domain.Common;
 
-namespace Backend.Domain.GuildMembership;
+namespace Backend.Domain.ChatMemberships;
 
 /// <summary>
-/// Represents a domain event that is raised when user join to the guild.
+/// Represents a domain event that is raised when a user joins a chat.
 /// </summary>
 public sealed record ChatMemberJoinedDomainEvent(
-    Guid GuildId,
+    Guid ChatId,
     Guid MemberId,
     DateTimeOffset OccurredAtUtc) : IDomainEvent;
