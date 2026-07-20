@@ -19,6 +19,8 @@ public class Chat : AggregateRoot
     // TODO: Add image url
     public Guid? OwnerId { get; private set; }
 
+    public string? DirectChatKey { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     private Chat()
@@ -34,12 +36,13 @@ public class Chat : AggregateRoot
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
-    private Chat(ChatType type)
+    private Chat(ChatType type, Guid userId1, Guid userId2)
     {
         Id = Guid.NewGuid();
         Name = null;
         Type = type;
         OwnerId = null;
+        DirectChatKey = GenerateDirectChatKey(userId1, userId2);
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -68,5 +71,24 @@ public class Chat : AggregateRoot
         return newServerChat;
     }
 
-    public static Chat CreateDirect() => new Chat(ChatType.Direct);
+    public static Chat CreateDirect(Guid userId1, Guid userId2)
+    {
+        if (userId1 == Guid.Empty || userId2 == Guid.Empty)
+        {
+            throw new DomainException("Users are required.");
+        }
+
+        if (userId1 == userId2)
+        {
+            throw new DomainException("A direct chat cannot be created with the same user.");
+        }
+
+        return new Chat(ChatType.Direct, userId1, userId2);
+    }
+
+    private static string GenerateDirectChatKey(Guid userId1, Guid userId2)
+    {
+        List<Guid> orderedIds = new List<Guid> { userId1, userId2 }.OrderBy(id => id).ToList();
+        return $"{orderedIds[0]}_{orderedIds[1]}";
+    }
 }
