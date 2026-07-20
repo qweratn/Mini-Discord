@@ -1,3 +1,6 @@
+using Backend.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Infrastructure;
@@ -11,10 +14,16 @@ public static class Configuration
     /// Adds infrastructure services to the specified IServiceCollection.
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">The configuration of the project.</param>
     /// <returns>The configured service collection.</returns>
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.UseNpgsql(configuration.GetConnectionString("PostgreSQL"));
+        });
         return services;
     }
 }
