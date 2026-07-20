@@ -16,11 +16,11 @@ public class Message : AggregateRoot
 
     public DateTimeOffset SendAt { get; private set; }
 
-    public Message()
+    private Message()
     {
     }
 
-    public Message(string content, Guid authorId, Guid chatId)
+    private Message(string content, Guid authorId, Guid chatId)
     {
         Id = Guid.NewGuid();
         Content = content;

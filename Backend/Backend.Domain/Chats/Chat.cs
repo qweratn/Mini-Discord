@@ -21,11 +21,11 @@ public class Chat : AggregateRoot
 
     public DateTimeOffset CreatedAt { get; private set; }
 
-    public Chat()
+    private Chat()
     {
     }
 
-    public Chat(string name, ChatType type, Guid ownerId)
+    private Chat(string name, ChatType type, Guid ownerId)
     {
         Id = Guid.NewGuid();
         Name = name;
@@ -34,7 +34,7 @@ public class Chat : AggregateRoot
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
-    public Chat(ChatType type)
+    private Chat(ChatType type)
     {
         Id = Guid.NewGuid();
         Name = null;

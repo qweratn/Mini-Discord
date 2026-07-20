@@ -13,15 +13,15 @@ public class ChatMembership : AggregateRoot
 
     public DateTimeOffset JoinedAt { get; private set; }
 
-    public ChatMembership()
+    private ChatMembership()
     {
     }
 
-    public ChatMembership(Guid chatId, Guid memberId)
+    private ChatMembership(Guid chatId, Guid memberId)
     {
         ChatId = chatId;
         MemberId = memberId;
-        JoinedAt = DateTimeOffset.Now;
+        JoinedAt = DateTimeOffset.UtcNow;
     }
 
     public static ChatMembership Create(Guid chatId, Guid memberId)
