@@ -28,7 +28,7 @@ export default function SignIn() {
       />
 
       <div className="relative mx-auto grid min-h-dvh w-full max-w-6xl items-center gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,0.85fr)] lg:gap-16 lg:px-8">
-        <section className="hidden min-w-0 lg:flex lg:flex-col lg:items-start">
+        <section className="auth-enter-left hidden min-w-0 lg:flex lg:flex-col lg:items-start">
           <h1 className="text-5xl font-bold leading-none tracking-tight">
             С возвращением!
           </h1>
@@ -41,11 +41,11 @@ export default function SignIn() {
             alt="Персонаж Mini Discord с ноутбуком"
             width={1254}
             height={1254}
-            className="mt-1 h-auto w-full max-w-lg object-contain [view-transition-name:mascot]"
+            className="auth-mascot-float mt-1 h-auto w-full max-w-lg object-contain [view-transition-name:mascot]"
           />
         </section>
 
-        <Card className="mx-auto w-full max-w-lg border-[#34364d] bg-[#161a2e]/95 text-white shadow-2xl shadow-black/25 backdrop-blur-xl">
+        <Card className="auth-enter-right mx-auto w-full max-w-lg border-[#34364d] bg-[#161a2e]/95 text-white shadow-2xl shadow-black/25 backdrop-blur-xl [view-transition-name:auth-card]">
           <CardHeader className="items-center px-6 pt-8 text-center sm:px-10 sm:pt-10">
             <CardTitle className="text-3xl font-bold tracking-tight">
               Войти в аккаунт
@@ -121,12 +121,13 @@ export default function SignIn() {
 
               <p className="pt-1 text-center text-sm text-[#9d9faf]">
                 Нет аккаунта?{" "}
-                <a
-                  href="#"
+                <Link
+                  to="/sign-up"
+                  viewTransition
                   className="font-medium text-[#7d8eff] hover:text-[#9aa7ff] hover:underline"
                 >
                   Зарегистрироваться
-                </a>
+                </Link>
               </p>
             </form>
 

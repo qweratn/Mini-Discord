@@ -144,3 +144,108 @@
     background-color: #0a0e20;
   }
 }
+
+::view-transition-old(root) {
+  animation: auth-page-out 180ms ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: auth-page-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+::view-transition-group(auth-card),
+::view-transition-group(mascot) {
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-enter-left {
+  animation: auth-enter-left 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-enter-right {
+  animation: auth-enter-right 680ms 80ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-form > * {
+  animation: auth-field-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-form > :nth-child(1) { animation-delay: 160ms; }
+.auth-form > :nth-child(2) { animation-delay: 220ms; }
+.auth-form > :nth-child(3) { animation-delay: 280ms; }
+.auth-form > :nth-child(4) { animation-delay: 340ms; }
+.auth-form > :nth-child(5) { animation-delay: 400ms; }
+.auth-form > :nth-child(6) { animation-delay: 460ms; }
+
+.auth-mascot-float {
+  animation: auth-mascot-float 5s ease-in-out infinite;
+  transform-origin: 50% 70%;
+}
+
+.auth-glow {
+  animation: auth-glow-pulse 4.5s ease-in-out infinite;
+}
+
+@keyframes auth-page-out {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(2px);
+  }
+}
+
+@keyframes auth-page-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(3px);
+  }
+}
+
+@keyframes auth-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-34px) scale(0.98);
+  }
+}
+
+@keyframes auth-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(34px) scale(0.98);
+  }
+}
+
+@keyframes auth-field-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes auth-mascot-float {
+  0%, 100% { translate: 0 0; rotate: -0.6deg; }
+  50% { translate: 0 -12px; rotate: 0.8deg; }
+}
+
+@keyframes auth-glow-pulse {
+  0%, 100% { opacity: 0.65; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-group(auth-card),
+  ::view-transition-group(mascot),
+  .auth-enter-left,
+  .auth-enter-right,
+  .auth-form > *,
+  .auth-mascot-float,
+  .auth-glow {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

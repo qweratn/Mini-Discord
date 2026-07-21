@@ -42,7 +42,7 @@ export default function Home() {
             <p className="mt-5 max-w-md text-base leading-7 text-[#9d9faf] sm:text-lg">
               Mini Discord - твое пространство для общения, сообществ и идей.
             </p>
-            <Link to="/sign-in" className="w-full sm:w-auto">
+            <Link to="/sign-in" viewTransition className="w-full sm:w-auto">
               <Button
                 variant="secondary"
                 size="lg"
@@ -71,7 +71,7 @@ export default function Home() {
           {info.map((item) => (
             <div
               key={item.title}
-              className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#272737] bg-[#1e1e2f] p-3 sm:min-h-24 hover:scale-105 hover:shadow-md"
+              className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#272737] bg-[#1e1e2f] p-3 sm:min-h-24 hover:scale-105 hover:shadow-md transition-transform duration-300"
             >
               <div
                 className={
