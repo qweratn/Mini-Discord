@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
 
 export default function Home() {
   const info = [
@@ -41,16 +42,18 @@ export default function Home() {
             <p className="mt-5 max-w-md text-base leading-7 text-[#9d9faf] sm:text-lg">
               Mini Discord - твое пространство для общения, сообществ и идей.
             </p>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="mt-6 min-h-11 w-full px-8 sm:w-auto"
-            >
-              Войти
-            </Button>
+            <Link to="/sign-in" className="w-full sm:w-auto">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="mt-6 min-h-11 w-full px-8 sm:w-auto"
+              >
+                Войти
+              </Button>
+            </Link>
           </div>
 
-          <div className="mx-auto w-full max-w-[640px]">
+          <div className="mx-auto w-full max-w-160">
             <img
               src="/hero.png"
               alt="Персонаж Mini Discord общается за ноутбуком"
