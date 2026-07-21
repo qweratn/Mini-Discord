@@ -71,7 +71,7 @@ export default function Home() {
           {info.map((item) => (
             <div
               key={item.title}
-              className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#272737] bg-[#1e1e2f] p-3 sm:min-h-24"
+              className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#272737] bg-[#1e1e2f] p-3 sm:min-h-24 hover:scale-105 hover:shadow-md"
             >
               <div
                 className={
