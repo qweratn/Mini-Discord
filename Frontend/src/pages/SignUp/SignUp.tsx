@@ -1,6 +1,6 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +15,18 @@ import { Label } from "@/components/ui/label";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+
+    navigate("/verify-otp", {
+      state: { email },
+      viewTransition: true,
+    });
   }
 
   return (
