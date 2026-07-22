@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import Loading from "@/shared/ui/Loading";
 import { useSignUp } from "@clerk/react";
 
 const CODE_LENGTH = 6;
@@ -41,6 +42,7 @@ export default function VerifyOtp() {
   const email = (location.state as LocationState | null)?.email ?? "";
   const [code, setCode] = useState(() => Array(CODE_LENGTH).fill(""));
   const [secondsLeft, setSecondsLeft] = useState(RESEND_DELAY);
+  const [isLoading, setIsLoading] = useState(false);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const { signUp } = useSignUp();
   const navigate = useNavigate();
@@ -108,30 +110,34 @@ export default function VerifyOtp() {
   }
 
   const handleVerify = async () => {
-    const otpCode = code.join("");
+    try {
+      setIsLoading(true);
 
-    if (otpCode.length !== CODE_LENGTH) {
-      return;
-    }
+      const otpCode = code.join("");
 
-    const { error } = await signUp.verifications.verifyEmailCode({
-      code: otpCode,
-    });
+      if (otpCode.length !== CODE_LENGTH) {
+        return;
+      }
 
-    if (error) {
+      await signUp.verifications.verifyEmailCode({
+        code: otpCode,
+      });
+
+      if (signUp.status === "complete") {
+        await signUp.finalize({
+          navigate: () => {
+            navigate("/chats", {
+              replace: true,
+              viewTransition: true,
+            });
+          },
+        });
+      }
+    } catch (error) {
       console.error(error);
       return;
-    }
-
-    if (signUp.status === "complete") {
-      await signUp.finalize({
-        navigate: () => {
-          navigate("/chats", {
-            replace: true,
-            viewTransition: true,
-          });
-        },
-      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -149,123 +155,126 @@ export default function VerifyOtp() {
   }
 
   return (
-    <main className="auth-page relative min-h-dvh overflow-hidden bg-[#0a0e20] text-white">
-      <div
-        aria-hidden="true"
-        className="auth-glow pointer-events-none absolute left-[8%] top-[20%] size-96 rounded-full bg-[#6277ef]/14 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-36 -right-28 size-96 rounded-full bg-[#7c3aed]/8 blur-3xl"
-      />
+    <>
+      {isLoading && <Loading />}
+      <main className="auth-page relative min-h-dvh overflow-hidden bg-[#0a0e20] text-white">
+        <div
+          aria-hidden="true"
+          className="auth-glow pointer-events-none absolute left-[8%] top-[20%] size-96 rounded-full bg-[#6277ef]/14 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-36 -right-28 size-96 rounded-full bg-[#7c3aed]/8 blur-3xl"
+        />
 
-      <div className="relative mx-auto grid min-h-dvh w-full max-w-6xl items-center gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,0.85fr)] lg:gap-16 lg:px-8">
-        <section className="auth-enter-left hidden min-w-0 lg:flex lg:flex-col lg:items-start">
-          <h1 className="max-w-lg text-5xl font-bold leading-[1.05] tracking-tight">
-            Остался последний шаг.
-          </h1>
-          <p className="mt-5 max-w-md text-lg leading-7 text-[#9d9faf]">
-            Подтверди почту — и можно начинать общение.
-          </p>
+        <div className="relative mx-auto grid min-h-dvh w-full max-w-6xl items-center gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,0.85fr)] lg:gap-16 lg:px-8">
+          <section className="auth-enter-left hidden min-w-0 lg:flex lg:flex-col lg:items-start">
+            <h1 className="max-w-lg text-5xl font-bold leading-[1.05] tracking-tight">
+              Остался последний шаг.
+            </h1>
+            <p className="mt-5 max-w-md text-lg leading-7 text-[#9d9faf]">
+              Подтверди почту — и можно начинать общение.
+            </p>
 
-          <img
-            src="/hero-auth.png"
-            alt="Персонаж Mini Discord с ноутбуком"
-            width={1254}
-            height={1254}
-            className="auth-mascot-float mt-1 h-auto w-full max-w-lg object-contain [view-transition-name:mascot]"
-          />
-        </section>
+            <img
+              src="/hero-auth.png"
+              alt="Персонаж Mini Discord с ноутбуком"
+              width={1254}
+              height={1254}
+              className="auth-mascot-float mt-1 h-auto w-full max-w-lg object-contain [view-transition-name:mascot]"
+            />
+          </section>
 
-        <Card className="auth-enter-right mx-auto w-full max-w-lg border-[#34364d] bg-[#161a2e]/95 text-white shadow-2xl shadow-black/25 backdrop-blur-xl [view-transition-name:auth-card]">
-          <CardHeader className="items-center px-6 pt-8 text-center sm:px-10 sm:pt-10">
-            <CardTitle className="text-3xl font-bold tracking-tight">
-              Введи код
-            </CardTitle>
-            <CardDescription className="max-w-sm text-base leading-6 text-[#9d9faf]">
-              Мы отправили шестизначный код на{" "}
-              <span className="font-medium text-[#d8d9e2]">
-                {maskEmail(email)}
-              </span>
-            </CardDescription>
-          </CardHeader>
+          <Card className="auth-enter-right mx-auto w-full max-w-lg border-[#34364d] bg-[#161a2e]/95 text-white shadow-2xl shadow-black/25 backdrop-blur-xl [view-transition-name:auth-card]">
+            <CardHeader className="items-center px-6 pt-8 text-center sm:px-10 sm:pt-10">
+              <CardTitle className="text-3xl font-bold tracking-tight">
+                Введи код
+              </CardTitle>
+              <CardDescription className="max-w-sm text-base leading-6 text-[#9d9faf]">
+                Мы отправили шестизначный код на{" "}
+                <span className="font-medium text-[#d8d9e2]">
+                  {maskEmail(email)}
+                </span>
+              </CardDescription>
+            </CardHeader>
 
-          <CardContent className="px-6 pb-8 pt-7 sm:px-10 sm:pb-10">
-            <form
-              className="auth-form space-y-6"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void handleVerify();
-              }}
-            >
-              <fieldset>
-                <legend className="sr-only">Код подтверждения</legend>
-                <div className="grid grid-cols-6 gap-2 sm:gap-3">
-                  {code.map((digit, index) => (
-                    <Input
-                      key={index}
-                      ref={(element) => {
-                        inputsRef.current[index] = element;
-                      }}
-                      value={digit}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                        updateCode(index, event.target.value)
-                      }
-                      onKeyDown={(event) => handleKeyDown(index, event)}
-                      onPaste={handlePaste}
-                      onFocus={(event) => event.currentTarget.select()}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete={index === 0 ? "one-time-code" : "off"}
-                      maxLength={1}
-                      aria-label={`Цифра ${index + 1} из ${CODE_LENGTH}`}
-                      autoFocus={index === 0}
-                      className="h-13 rounded-xl border-[#3a3d57] bg-[#0f1326]/70 p-0 text-center text-xl font-semibold text-white caret-[#8796ff] focus-visible:border-[#6277ef] focus-visible:ring-[#6277ef]/25 sm:h-14 sm:text-2xl"
-                    />
-                  ))}
-                </div>
-              </fieldset>
-
-              <Button
-                type="submit"
-                size="lg"
-                disabled={!isComplete}
-                className="h-12 w-full bg-[#6277ef] text-base font-semibold text-white shadow-lg shadow-[#6277ef]/20 transition-transform enabled:hover:-translate-y-0.5 enabled:hover:bg-[#7185ff] disabled:bg-[#3a416d] disabled:text-[#9297b8]"
+            <CardContent className="px-6 pb-8 pt-7 sm:px-10 sm:pb-10">
+              <form
+                className="auth-form space-y-6"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleVerify();
+                }}
               >
-                Подтвердить
-              </Button>
+                <fieldset>
+                  <legend className="sr-only">Код подтверждения</legend>
+                  <div className="grid grid-cols-6 gap-2 sm:gap-3">
+                    {code.map((digit, index) => (
+                      <Input
+                        key={index}
+                        ref={(element) => {
+                          inputsRef.current[index] = element;
+                        }}
+                        value={digit}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                          updateCode(index, event.target.value)
+                        }
+                        onKeyDown={(event) => handleKeyDown(index, event)}
+                        onPaste={handlePaste}
+                        onFocus={(event) => event.currentTarget.select()}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete={index === 0 ? "one-time-code" : "off"}
+                        maxLength={1}
+                        aria-label={`Цифра ${index + 1} из ${CODE_LENGTH}`}
+                        autoFocus={index === 0}
+                        className="h-13 rounded-xl border-[#3a3d57] bg-[#0f1326]/70 p-0 text-center text-xl font-semibold text-white caret-[#8796ff] focus-visible:border-[#6277ef] focus-visible:ring-[#6277ef]/25 sm:h-14 sm:text-2xl"
+                      />
+                    ))}
+                  </div>
+                </fieldset>
 
-              <div className="text-center text-sm text-[#9d9faf]">
-                {secondsLeft > 0 ? (
-                  <p>
-                    Отправить код повторно через{" "}
-                    <span className="font-medium tabular-nums text-[#d8d9e2]">
-                      0:{secondsLeft.toString().padStart(2, "0")}
-                    </span>
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    className="font-medium text-[#7d8eff] transition-colors hover:text-[#9aa7ff] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6277ef]"
-                  >
-                    Отправить код повторно
-                  </button>
-                )}
-              </div>
-            </form>
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={!isComplete}
+                  className="h-12 w-full bg-[#6277ef] text-base font-semibold text-white shadow-lg shadow-[#6277ef]/20 transition-transform enabled:hover:-translate-y-0.5 enabled:hover:bg-[#7185ff] disabled:bg-[#3a416d] disabled:text-[#9297b8]"
+                >
+                  Подтвердить
+                </Button>
 
-            <Link
-              to="/sign-up"
-              viewTransition
-              className="mt-7 flex items-center justify-center gap-2 text-sm text-[#74778b] transition-colors hover:text-[#b7b9c6]"
-            >
-              <ArrowLeftIcon className="size-4" aria-hidden="true" />
-              Изменить электронную почту
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
+                <div className="text-center text-sm text-[#9d9faf]">
+                  {secondsLeft > 0 ? (
+                    <p>
+                      Отправить код повторно через{" "}
+                      <span className="font-medium tabular-nums text-[#d8d9e2]">
+                        0:{secondsLeft.toString().padStart(2, "0")}
+                      </span>
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      className="font-medium text-[#7d8eff] transition-colors hover:text-[#9aa7ff] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6277ef]"
+                    >
+                      Отправить код повторно
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              <Link
+                to="/sign-up"
+                viewTransition
+                className="mt-7 flex items-center justify-center gap-2 text-sm text-[#74778b] transition-colors hover:text-[#b7b9c6]"
+              >
+                <ArrowLeftIcon className="size-4" aria-hidden="true" />
+                Изменить электронную почту
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </>
   );
 }
