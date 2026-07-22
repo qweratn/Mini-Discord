@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { toastManager } from "@/lib/toast";
 import Loading from "@/shared/ui/Loading";
 import { useSignIn, useSignUp } from "@clerk/react";
 
@@ -136,6 +137,13 @@ export default function VerifyOtp() {
 
     const { error } = await auth.finalize({
       navigate: () => {
+        toastManager.add({
+          type: "success",
+          title: isSignIn ? "Вход выполнен" : "Регистрация завершена",
+          description: isSignIn
+            ? "С возвращением в Mini Discord!"
+            : "Добро пожаловать в Mini Discord!",
+        });
         navigate("/chats", {
           replace: true,
           viewTransition: true,

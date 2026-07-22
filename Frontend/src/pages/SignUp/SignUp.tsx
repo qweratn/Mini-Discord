@@ -12,14 +12,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 import Loading from "@/shared/ui/Loading";
 import { useSignUp } from "@clerk/react";
 
 export default function SignUp() {
-  const { signUp } = useSignUp();
+  const { signUp, errors } = useSignUp();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const usernameError = errors.fields.username;
+  const emailError = errors.fields.emailAddress;
+  const passwordError = errors.fields.password;
+  const globalError = errors.global?.[0];
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -28,6 +34,7 @@ export default function SignUp() {
 
     try {
       setIsLoading(true);
+      setFormError(null);
 
       const username = String(formData.get("username") ?? "").trim();
       const emailAddress = String(formData.get("email") ?? "").trim();
@@ -49,6 +56,12 @@ export default function SignUp() {
 
       if (verificationError) {
         console.error(verificationError);
+        setFormError(
+          getAuthErrorMessage(
+            verificationError,
+            "Не удалось отправить код подтверждения",
+          ),
+        );
         return;
       }
 
@@ -58,6 +71,7 @@ export default function SignUp() {
       });
     } catch (error) {
       console.error(JSON.stringify(error, null, 2));
+      setFormError(getAuthErrorMessage(error));
       return;
     } finally {
       setIsLoading(false);
@@ -100,8 +114,21 @@ export default function SignUp() {
                     autoComplete="username"
                     placeholder="Как тебя называть?"
                     required
+                    aria-invalid={Boolean(usernameError)}
+                    aria-describedby={
+                      usernameError ? "sign-up-username-error" : undefined
+                    }
                     className="h-11 border-[#3a3d57] bg-[#0f1326]/70 px-4 text-base text-white placeholder:text-[#74778b] focus-visible:border-[#6277ef] focus-visible:ring-[#6277ef]/25"
                   />
+                  {usernameError && (
+                    <p
+                      id="sign-up-username-error"
+                      role="alert"
+                      className="text-sm text-red-400"
+                    >
+                      {getAuthErrorMessage(usernameError)}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -115,8 +142,19 @@ export default function SignUp() {
                     autoComplete="email"
                     placeholder="you@example.com"
                     required
+                    aria-invalid={Boolean(emailError)}
+                    aria-describedby={emailError ? "sign-up-email-error" : undefined}
                     className="h-11 border-[#3a3d57] bg-[#0f1326]/70 px-4 text-base text-white placeholder:text-[#74778b] focus-visible:border-[#6277ef] focus-visible:ring-[#6277ef]/25"
                   />
+                  {emailError && (
+                    <p
+                      id="sign-up-email-error"
+                      role="alert"
+                      className="text-sm text-red-400"
+                    >
+                      {getAuthErrorMessage(emailError)}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sign-up-password" className="text-[#d8d9e2]">
@@ -131,6 +169,10 @@ export default function SignUp() {
                       placeholder="Не менее 8 символов"
                       minLength={8}
                       required
+                      aria-invalid={Boolean(passwordError)}
+                      aria-describedby={
+                        passwordError ? "sign-up-password-error" : undefined
+                      }
                       className="h-11 border-[#3a3d57] bg-[#0f1326]/70 px-4 pr-11 text-sm text-white placeholder:text-[#74778b] focus-visible:border-[#6277ef] focus-visible:ring-[#6277ef]/25"
                     />
                     <Button
@@ -147,7 +189,25 @@ export default function SignUp() {
                       {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                     </Button>
                   </div>
+                  {passwordError && (
+                    <p
+                      id="sign-up-password-error"
+                      role="alert"
+                      className="text-sm text-red-400"
+                    >
+                      {getAuthErrorMessage(passwordError)}
+                    </p>
+                  )}
                 </div>
+
+                {(formError || globalError) && (
+                  <p
+                    role="alert"
+                    className="rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-sm text-red-300"
+                  >
+                    {formError ?? getAuthErrorMessage(globalError)}
+                  </p>
+                )}
 
                 <Button
                   type="submit"

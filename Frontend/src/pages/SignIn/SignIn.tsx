@@ -12,20 +12,27 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { toastManager } from "@/lib/toast";
 import Loading from "@/shared/ui/Loading";
 import { useSignIn } from "@clerk/react";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useSignIn();
+  const [formError, setFormError] = useState<string | null>(null);
+  const { signIn, errors } = useSignIn();
   const navigate = useNavigate();
+  const emailError = errors.fields.identifier;
+  const passwordError = errors.fields.password;
+  const globalError = errors.global?.[0];
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
       setIsLoading(true);
+      setFormError(null);
       const formData = new FormData(event.currentTarget);
       const emailAddress = String(formData.get("email") ?? "").trim();
       const password = String(formData.get("password") ?? "");
@@ -43,6 +50,11 @@ export default function SignIn() {
       if (signIn.status === "complete") {
         const { error: finalizeError } = await signIn.finalize({
           navigate: () => {
+            toastManager.add({
+              type: "success",
+              title: "Вход выполнен",
+              description: "С возвращением в Mini Discord!",
+            });
             navigate("/chats", {
               replace: true,
               viewTransition: true,
@@ -52,6 +64,7 @@ export default function SignIn() {
 
         if (finalizeError) {
           console.error(finalizeError);
+          setFormError(getAuthErrorMessage(finalizeError));
         }
 
         return;
@@ -66,6 +79,12 @@ export default function SignIn() {
 
         if (verificationError) {
           console.error(verificationError);
+          setFormError(
+            getAuthErrorMessage(
+              verificationError,
+              "Не удалось отправить код подтверждения",
+            ),
+          );
           return;
         }
 
@@ -78,8 +97,10 @@ export default function SignIn() {
       }
 
       console.error("Вход не завершён", { status: signIn.status });
+      setFormError("Не удалось завершить вход. Попробуйте ещё раз");
     } catch (error) {
       console.error(JSON.stringify(error, null, 2));
+      setFormError(getAuthErrorMessage(error));
       return;
     } finally {
       setIsLoading(false);
@@ -136,8 +157,19 @@ export default function SignIn() {
                     autoComplete="email"
                     placeholder="you@example.com"
                     required
+                    aria-invalid={Boolean(emailError)}
+                    aria-describedby={emailError ? "sign-in-email-error" : undefined}
                     className="h-12 border-[#3a3d57] bg-[#0f1326]/70 px-4 text-base text-white placeholder:text-[#74778b] focus-visible:border-[#6277ef] focus-visible:ring-[#6277ef]/25"
                   />
+                  {emailError && (
+                    <p
+                      id="sign-in-email-error"
+                      role="alert"
+                      className="text-sm text-red-400"
+                    >
+                      {getAuthErrorMessage(emailError)}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -152,6 +184,10 @@ export default function SignIn() {
                       autoComplete="current-password"
                       placeholder="Введите пароль"
                       required
+                      aria-invalid={Boolean(passwordError)}
+                      aria-describedby={
+                        passwordError ? "sign-in-password-error" : undefined
+                      }
                       className="h-12 border-[#3a3d57] bg-[#0f1326]/70 px-4 pr-12 text-base text-white placeholder:text-[#74778b] focus-visible:border-[#6277ef] focus-visible:ring-[#6277ef]/25"
                     />
                     <Button
@@ -168,6 +204,15 @@ export default function SignIn() {
                       {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                     </Button>
                   </div>
+                  {passwordError && (
+                    <p
+                      id="sign-in-password-error"
+                      role="alert"
+                      className="text-sm text-red-400"
+                    >
+                      {getAuthErrorMessage(passwordError)}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -178,6 +223,15 @@ export default function SignIn() {
                     Забыли пароль?
                   </a>
                 </div>
+
+                {(formError || globalError) && (
+                  <p
+                    role="alert"
+                    className="rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-sm text-red-300"
+                  >
+                    {formError ?? getAuthErrorMessage(globalError)}
+                  </p>
+                )}
 
                 <Button
                   type="submit"
