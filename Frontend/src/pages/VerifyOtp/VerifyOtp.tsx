@@ -19,13 +19,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Loading from "@/shared/ui/Loading";
-import { useSignUp } from "@clerk/react";
+import { useSignIn, useSignUp } from "@clerk/react";
 
 const CODE_LENGTH = 6;
 const RESEND_DELAY = 30;
 
 type LocationState = {
   email?: string;
+  flow?: "sign-in" | "sign-up";
 };
 
 function maskEmail(email: string) {
@@ -39,13 +40,26 @@ function maskEmail(email: string) {
 
 export default function VerifyOtp() {
   const location = useLocation();
-  const email = (location.state as LocationState | null)?.email ?? "";
+  const locationState = location.state as LocationState | null;
   const [code, setCode] = useState(() => Array(CODE_LENGTH).fill(""));
   const [secondsLeft, setSecondsLeft] = useState(RESEND_DELAY);
   const [isLoading, setIsLoading] = useState(false);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const { signUp } = useSignUp();
+  const { signIn } = useSignIn();
   const navigate = useNavigate();
+  const flow =
+    locationState?.flow ??
+    (signIn.status === "needs_client_trust" ||
+    signIn.status === "needs_second_factor"
+      ? "sign-in"
+      : "sign-up");
+  const isSignIn = flow === "sign-in";
+  const email =
+    locationState?.email ??
+    (isSignIn ? signIn.identifier : signUp.emailAddress) ??
+    "";
+  const returnPath = isSignIn ? "/sign-in" : "/sign-up";
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -109,6 +123,44 @@ export default function VerifyOtp() {
     inputsRef.current[Math.min(pastedCode.length, CODE_LENGTH) - 1]?.focus();
   }
 
+  async function finalizeAuthentication() {
+    const auth = isSignIn ? signIn : signUp;
+
+    if (auth.status !== "complete") {
+      console.error("Верификация не завершила авторизацию", {
+        flow,
+        status: auth.status,
+      });
+      return;
+    }
+
+    const { error } = await auth.finalize({
+      navigate: () => {
+        navigate("/chats", {
+          replace: true,
+          viewTransition: true,
+        });
+      },
+    });
+
+    if (error) {
+      console.error(error);
+    }
+  }
+
+  async function verifyOtp(otpCode: string) {
+    const { error } = isSignIn
+      ? await signIn.mfa.verifyEmailCode({ code: otpCode })
+      : await signUp.verifications.verifyEmailCode({ code: otpCode });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    await finalizeAuthentication();
+  }
+
   const handleVerify = async () => {
     try {
       setIsLoading(true);
@@ -119,20 +171,7 @@ export default function VerifyOtp() {
         return;
       }
 
-      await signUp.verifications.verifyEmailCode({
-        code: otpCode,
-      });
-
-      if (signUp.status === "complete") {
-        await signUp.finalize({
-          navigate: () => {
-            navigate("/chats", {
-              replace: true,
-              viewTransition: true,
-            });
-          },
-        });
-      }
+      await verifyOtp(otpCode);
     } catch (error) {
       console.error(error);
       return;
@@ -142,16 +181,26 @@ export default function VerifyOtp() {
   };
 
   async function handleResend() {
-    const { error } = await signUp.verifications.sendEmailCode();
+    try {
+      setIsLoading(true);
 
-    if (error) {
+      const { error } = isSignIn
+        ? await signIn.mfa.sendEmailCode()
+        : await signUp.verifications.sendEmailCode();
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setCode(Array(CODE_LENGTH).fill(""));
+      setSecondsLeft(RESEND_DELAY);
+      inputsRef.current[0]?.focus();
+    } catch (error) {
       console.error(error);
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    setCode(Array(CODE_LENGTH).fill(""));
-    setSecondsLeft(RESEND_DELAY);
-    inputsRef.current[0]?.focus();
   }
 
   return (
@@ -173,7 +222,9 @@ export default function VerifyOtp() {
               Остался последний шаг.
             </h1>
             <p className="mt-5 max-w-md text-lg leading-7 text-[#9d9faf]">
-              Подтверди почту — и можно начинать общение.
+              {isSignIn
+                ? "Подтверди вход — и можно продолжать общение."
+                : "Подтверди почту — и можно начинать общение."}
             </p>
 
             <img
@@ -255,6 +306,7 @@ export default function VerifyOtp() {
                     <button
                       type="button"
                       onClick={handleResend}
+                      disabled={isLoading}
                       className="font-medium text-[#7d8eff] transition-colors hover:text-[#9aa7ff] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6277ef]"
                     >
                       Отправить код повторно
@@ -264,12 +316,14 @@ export default function VerifyOtp() {
               </form>
 
               <Link
-                to="/sign-up"
+                to={returnPath}
                 viewTransition
                 className="mt-7 flex items-center justify-center gap-2 text-sm text-[#74778b] transition-colors hover:text-[#b7b9c6]"
               >
                 <ArrowLeftIcon className="size-4" aria-hidden="true" />
-                Изменить электронную почту
+                {isSignIn
+                  ? "Вернуться ко входу"
+                  : "Изменить электронную почту"}
               </Link>
             </CardContent>
           </Card>

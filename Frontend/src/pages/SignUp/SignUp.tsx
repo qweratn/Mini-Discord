@@ -54,7 +54,7 @@ export default function SignUp() {
 
       navigate("/verify-otp", {
         viewTransition: true,
-        state: { email: emailAddress },
+        state: { email: emailAddress, flow: "sign-up" },
       });
     } catch (error) {
       console.error(JSON.stringify(error, null, 2));
