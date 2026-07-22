@@ -1,5 +1,5 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -12,22 +12,36 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSignUp } from "@clerk/react";
 
 export default function SignUp() {
+  const { signUp } = useSignUp();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
+    const username = String(formData.get("username") ?? "").trim();
+    const emailAddress = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "");
-
-    navigate("/verify-otp", {
-      state: { email },
-      viewTransition: true,
+    const { error } = await signUp.password({
+      username,
+      emailAddress,
+      password,
     });
-  }
+    if (error) {
+      console.error(JSON.stringify(error, null, 2));
+      return;
+    }
+
+    if (!error) {
+      await signUp.verifications.sendEmailCode();
+      navigate("/verify-otp", {
+        viewTransition: true,
+        state: { email: emailAddress },
+      });
+    }
+  };
 
   return (
     <main className="auth-page relative min-h-dvh overflow-hidden bg-[#0a0e20] text-white">
@@ -52,7 +66,7 @@ export default function SignUp() {
           </CardHeader>
 
           <CardContent className="px-6 pb-7 pt-6 sm:px-10 sm:pb-8">
-            <form className="auth-form space-y-4" onSubmit={handleSubmit}>
+            <form className="auth-form space-y-4" action={handleSubmit}>
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-[#d8d9e2]">
                   Имя пользователя

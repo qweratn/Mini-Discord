@@ -5,10 +5,9 @@ import {
   useState,
   type ChangeEvent,
   type ClipboardEvent,
-  type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useSignUp } from "@clerk/react";
 
 const CODE_LENGTH = 6;
 const RESEND_DELAY = 30;
@@ -42,6 +42,8 @@ export default function VerifyOtp() {
   const [code, setCode] = useState(() => Array(CODE_LENGTH).fill(""));
   const [secondsLeft, setSecondsLeft] = useState(RESEND_DELAY);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+  const { signUp } = useSignUp();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -105,11 +107,42 @@ export default function VerifyOtp() {
     inputsRef.current[Math.min(pastedCode.length, CODE_LENGTH) - 1]?.focus();
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-  }
+  const handleVerify = async () => {
+    const otpCode = code.join("");
 
-  function handleResend() {
+    if (otpCode.length !== CODE_LENGTH) {
+      return;
+    }
+
+    const { error } = await signUp.verifications.verifyEmailCode({
+      code: otpCode,
+    });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (signUp.status === "complete") {
+      await signUp.finalize({
+        navigate: () => {
+          navigate("/chats", {
+            replace: true,
+            viewTransition: true,
+          });
+        },
+      });
+    }
+  };
+
+  async function handleResend() {
+    const { error } = await signUp.verifications.sendEmailCode();
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
     setCode(Array(CODE_LENGTH).fill(""));
     setSecondsLeft(RESEND_DELAY);
     inputsRef.current[0]?.focus();
@@ -158,7 +191,13 @@ export default function VerifyOtp() {
           </CardHeader>
 
           <CardContent className="px-6 pb-8 pt-7 sm:px-10 sm:pb-10">
-            <form className="auth-form space-y-6" onSubmit={handleSubmit}>
+            <form
+              className="auth-form space-y-6"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleVerify();
+              }}
+            >
               <fieldset>
                 <legend className="sr-only">Код подтверждения</legend>
                 <div className="grid grid-cols-6 gap-2 sm:gap-3">
