@@ -1,3 +1,4 @@
+using Backend.Application.Common.Interfaces;
 using Backend.Domain.ChatMemberships;
 using Backend.Domain.Chats;
 using Backend.Domain.Messages;
@@ -9,7 +10,7 @@ namespace Backend.Infrastructure.Data;
 /// <summary>
 /// Application database context.
 /// </summary>
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext, IUnitOfWork
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
