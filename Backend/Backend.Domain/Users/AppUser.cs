@@ -17,6 +17,8 @@ public class AppUser : AggregateRoot
 
     public string Email { get; private set; } = null!;
 
+    public string ImageUrl { get; private set; } = null!;
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     private AppUser()
@@ -28,12 +30,14 @@ public class AppUser : AggregateRoot
         string clerkId,
         string username,
         string email,
+        string imageUrl,
         DateTimeOffset createdAt)
     {
         Id = id;
         ClerkId = clerkId;
         Username = username;
         Email = email;
+        ImageUrl = imageUrl;
         CreatedAt = createdAt;
     }
 
@@ -43,7 +47,8 @@ public class AppUser : AggregateRoot
     public static AppUser SyncFromClerk(
         string clerkId,
         string username,
-        string email)
+        string email,
+        string imageUrl)
     {
         if (string.IsNullOrEmpty(clerkId))
         {
@@ -70,6 +75,7 @@ public class AppUser : AggregateRoot
             clerkId,
             username,
             email,
+            imageUrl,
             DateTimeOffset.UtcNow);
 
         newAppUser.AddDomainEvent(new UserSynchronizedDomainEvent(newAppUser.Id, newAppUser.CreatedAt));
@@ -80,7 +86,7 @@ public class AppUser : AggregateRoot
     /// <summary>
     /// Update user info.
     /// </summary>
-    public void SyncProfile(string username, string email)
+    public void SyncProfile(string username, string email, string imageUrl)
     {
         if (string.IsNullOrWhiteSpace(username))
         {
@@ -94,5 +100,6 @@ public class AppUser : AggregateRoot
 
         Username = username.Trim();
         Email = email.Trim();
+        ImageUrl = imageUrl.Trim();
     }
 }

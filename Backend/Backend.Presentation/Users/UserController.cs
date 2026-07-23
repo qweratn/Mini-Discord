@@ -1,3 +1,4 @@
+using Backend.Application.Users.Models;
 using Backend.Application.Users.RequestHandlers.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -32,19 +33,24 @@ public class UserController : ControllerBase
         string? clerkId = User.FindFirst("sub")?.Value;
         string? username = User.FindFirst("username")?.Value;
         string? email = User.FindFirst("email")?.Value;
+        string? imageUrl = User.FindFirst("imageUrl")?.Value;
 
         if (clerkId == null)
         {
             return Unauthorized();
         }
 
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email))
+        if (string.IsNullOrEmpty(username) ||
+            string.IsNullOrEmpty(email) ||
+            string.IsNullOrEmpty(imageUrl))
         {
-            return BadRequest("Username and email cannot be empty.");
+            return BadRequest("Username, email, and image URL cannot be empty.");
         }
 
+        UpsertAppUser appUser = new UpsertAppUser(clerkId, username, email, imageUrl);
+
         await mediator.Send(
-            new SyncUserFromClerkCommand.Command(clerkId, username, email));
+            new SyncUserFromClerkCommand.Command(appUser));
         return Ok();
     }
 }
