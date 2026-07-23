@@ -14,6 +14,21 @@ builder.Services.AddInfrastructure(builder.Configuration);
 string authority = builder.Configuration["Clerk:Authority"] ??
                    throw new InvalidOperationException("Clerk:Authority is not configured.");
 
+const string frontendCors = "FrontendCors";
+
+builder.Services.AddControllers();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(frontendCors, policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -75,6 +90,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(frontendCors);
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -329,9 +329,7 @@ export default function VerifyOtp() {
                 className="mt-7 flex items-center justify-center gap-2 text-sm text-[#74778b] transition-colors hover:text-[#b7b9c6]"
               >
                 <ArrowLeftIcon className="size-4" aria-hidden="true" />
-                {isSignIn
-                  ? "Вернуться ко входу"
-                  : "Изменить электронную почту"}
+                {isSignIn ? "Вернуться ко входу" : "Изменить электронную почту"}
               </Link>
             </CardContent>
           </Card>
