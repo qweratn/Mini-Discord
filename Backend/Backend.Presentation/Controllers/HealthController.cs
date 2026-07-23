@@ -14,7 +14,7 @@ public class HealthController : ControllerBase
     /// Basic health endpoint for check
     /// that application works correctly.
     /// </summary>
-    /// <response code="200" />
+    /// <response code="200">Returns OK if application works correctly.</response>
     [HttpGet("health")]
     public IActionResult Health()
     {
@@ -25,8 +25,8 @@ public class HealthController : ControllerBase
     /// Health endpoint for check that
     /// application works correctly with authorized user.
     /// </summary>
-    /// <response code="200" />
-    /// <returns>User info.</returns>
+    /// <response code="200">Returns the current user.</response>
+    /// <response code="401">The request has no valid Clerk token.</response>
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
