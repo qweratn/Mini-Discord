@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Backend.Presentation.Controllers;
+namespace Backend.Presentation.Health;
 
 /// <summary>
 /// Health controller.
 /// </summary>
 [ApiController]
-[Route("api/users")]
+[Route("api/health")]
 public class HealthController : ControllerBase
 {
     /// <summary>
@@ -15,7 +15,7 @@ public class HealthController : ControllerBase
     /// that application works correctly.
     /// </summary>
     /// <response code="200">Returns OK if application works correctly.</response>
-    [HttpGet("health")]
+    [HttpGet]
     public IActionResult Health()
     {
         return Ok();
@@ -31,16 +31,16 @@ public class HealthController : ControllerBase
     [HttpGet("me")]
     public IActionResult Me()
     {
-        string? userId = User.FindFirst("sub")?.Value;
+        string? clerkId = User.FindFirst("sub")?.Value;
 
-        if (userId == null)
+        if (clerkId == null)
         {
-            throw new Exception("User not found");
+            return Unauthorized();
         }
 
         return Ok(new
         {
-            Id = userId,
+            Id = clerkId,
             Username = User.FindFirst("username")?.Value,
             Email = User.FindFirst("email")?.Value,
         });
