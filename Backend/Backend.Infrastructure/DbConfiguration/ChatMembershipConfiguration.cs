@@ -19,7 +19,7 @@ public class ChatMembershipConfiguration : IEntityTypeConfiguration<ChatMembersh
             .OnDelete(DeleteBehavior.Cascade);
 
         builder
-            .HasOne<User>()
+            .HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(x => x.MemberId)
             .OnDelete(DeleteBehavior.Cascade);

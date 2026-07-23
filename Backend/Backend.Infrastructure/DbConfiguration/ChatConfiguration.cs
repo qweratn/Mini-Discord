@@ -22,7 +22,7 @@ public class ChatConfiguration : IEntityTypeConfiguration<Chat>
             .HasConversion<string>();
 
         builder
-            .HasOne<User>()
+            .HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(x => x.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);

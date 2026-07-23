@@ -5,43 +5,48 @@ namespace Backend.Domain.Users;
 /// <summary>
 /// User.
 /// </summary>
-public class User : AggregateRoot
+public class AppUser : AggregateRoot
 {
     private const int MaxUsernameLength = 32;
 
     public Guid Id { get; private set; }
 
+    public string ClerkId { get; private set; } = null!;
+
     public string Username { get; private set; } = null!;
 
     public string Email { get; private set; } = null!;
 
-    public string PasswordHash { get; private set; } = null!;
-
     public DateTimeOffset CreatedAt { get; private set; }
 
-    private User()
+    private AppUser()
     {
     }
 
-    private User(
+    private AppUser(
         Guid id,
+        string clickId,
         string username,
         string email,
-        string passwordHash,
         DateTimeOffset createdAt)
     {
         Id = id;
+        ClerkId = clickId;
         Username = username;
         Email = email;
-        PasswordHash = passwordHash;
         CreatedAt = createdAt;
     }
 
-    public static User Register(
+    public static AppUser SyncFromClerk(
+        string clerkId,
         string username,
-        string email,
-        string passwordHash)
+        string email)
     {
+        if (string.IsNullOrEmpty(clerkId))
+        {
+            throw new DomainException("Click ID cannot be null or empty.");
+        }
+
         if (string.IsNullOrWhiteSpace(username))
         {
             throw new DomainException("Username cannot be empty.");
@@ -57,30 +62,15 @@ public class User : AggregateRoot
             throw new DomainException("Email cannot be empty.");
         }
 
-        if (string.IsNullOrWhiteSpace(passwordHash))
-        {
-            throw new DomainException("Password hash cannot be empty.");
-        }
-
-        User newUser = new User(
+        AppUser newAppUser = new AppUser(
             Guid.NewGuid(),
+            clerkId,
             username,
             email,
-            passwordHash,
             DateTimeOffset.UtcNow);
 
-        newUser.AddDomainEvent(new UserRegisteredDomainEvent(newUser.Id, newUser.CreatedAt));
+        newAppUser.AddDomainEvent(new UserSynchronizedDomainEvent(newAppUser.Id, newAppUser.CreatedAt));
 
-        return newUser;
-    }
-
-    public void ChangePasswordHash(string newPasswordHash)
-    {
-        if (string.IsNullOrWhiteSpace(newPasswordHash))
-        {
-            throw new DomainException("Password hash cannot be empty.");
-        }
-
-        PasswordHash = newPasswordHash;
+        return newAppUser;
     }
 }

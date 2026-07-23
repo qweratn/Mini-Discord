@@ -25,7 +25,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder
-            .HasOne<User>()
+            .HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(x => x.AuthorId)
             .OnDelete(DeleteBehavior.Restrict);

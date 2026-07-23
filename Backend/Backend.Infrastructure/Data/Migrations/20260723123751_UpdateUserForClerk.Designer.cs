@@ -3,6 +3,7 @@ using System;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260723123751_UpdateUserForClerk")]
+    partial class UpdateUserForClerk
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,7 +102,7 @@ namespace Backend.Infrastructure.Data.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("Backend.Domain.Users.AppUser", b =>
+            modelBuilder.Entity("Backend.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -139,7 +142,7 @@ namespace Backend.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Backend.Domain.Users.AppUser", null)
+                    b.HasOne("Backend.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -148,7 +151,7 @@ namespace Backend.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Backend.Domain.Chats.Chat", b =>
                 {
-                    b.HasOne("Backend.Domain.Users.AppUser", null)
+                    b.HasOne("Backend.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -156,7 +159,7 @@ namespace Backend.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Backend.Domain.Messages.Message", b =>
                 {
-                    b.HasOne("Backend.Domain.Users.AppUser", null)
+                    b.HasOne("Backend.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Restrict)
