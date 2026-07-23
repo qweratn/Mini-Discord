@@ -25,18 +25,21 @@ public class AppUser : AggregateRoot
 
     private AppUser(
         Guid id,
-        string clickId,
+        string clerkId,
         string username,
         string email,
         DateTimeOffset createdAt)
     {
         Id = id;
-        ClerkId = clickId;
+        ClerkId = clerkId;
         Username = username;
         Email = email;
         CreatedAt = createdAt;
     }
 
+    /// <summary>
+    /// Create new user.
+    /// </summary>
     public static AppUser SyncFromClerk(
         string clerkId,
         string username,
@@ -72,5 +75,24 @@ public class AppUser : AggregateRoot
         newAppUser.AddDomainEvent(new UserSynchronizedDomainEvent(newAppUser.Id, newAppUser.CreatedAt));
 
         return newAppUser;
+    }
+
+    /// <summary>
+    /// Update user info.
+    /// </summary>
+    public void SyncProfile(string username, string email)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new DomainException("Username cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new DomainException("Email cannot be empty.");
+        }
+
+        Username = username.Trim();
+        Email = email.Trim();
     }
 }
