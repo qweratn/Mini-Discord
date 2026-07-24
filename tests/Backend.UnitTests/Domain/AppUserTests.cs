@@ -45,7 +45,7 @@ public class AppUserTests
     [InlineData(" ")]
     [InlineData("   ")]
     [InlineData("\t")]
-    public void HandleSyncFormClerk_UsernameIsNullOrWhiteSpace_ShouldThrow(string  username)
+    public void HandleSyncFormClerk_UsernameIsNullOrWhiteSpace_ShouldThrow(string? username)
     {
         string exceptionMessage = "Username cannot be empty.";
 
@@ -79,7 +79,7 @@ public class AppUserTests
     [InlineData(" ")]
     [InlineData("   ")]
     [InlineData("\t")]
-    public void HandleSyncFormClerk_EmailIsNullOrWhiteSpace_ShouldThrow(string  email)
+    public void HandleSyncFormClerk_EmailIsNullOrWhiteSpace_ShouldThrow(string? email)
     {
         string exceptionMessage = "Email cannot be empty.";
 
@@ -117,7 +117,7 @@ public class AppUserTests
     [InlineData(" ")]
     [InlineData("   ")]
     [InlineData("\t")]
-    public void HandleSyncProfile_UsernameIsNullOrWhiteSpace_ShouldThrow(string  username)
+    public void HandleSyncProfile_UsernameIsNullOrWhiteSpace_ShouldThrow(string? username)
     {
         string exceptionMessage = "Username cannot be empty.";
         AppUser user = AppUser.SyncFromClerk(
@@ -137,7 +137,7 @@ public class AppUserTests
     [InlineData(" ")]
     [InlineData("   ")]
     [InlineData("\t")]
-    public void HandleSyncProfile_EmailIsNullOrWhiteSpace_ShouldThrow(string  email)
+    public void HandleSyncProfile_EmailIsNullOrWhiteSpace_ShouldThrow(string? email)
     {
         string exceptionMessage = "Email cannot be empty.";
         AppUser user = AppUser.SyncFromClerk(

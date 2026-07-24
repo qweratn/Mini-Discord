@@ -53,7 +53,7 @@ public class MessageTests
     [InlineData(" ")]
     [InlineData("   ")]
     [InlineData("\t")]
-    public void HandleCreate_MessageIsNullOrEmpty_ShouldThrow(string content)
+    public void HandleCreate_MessageIsNullOrEmpty_ShouldThrow(string? content)
     {
         string exceptionMessage = "Message cannot be empty.";
 
