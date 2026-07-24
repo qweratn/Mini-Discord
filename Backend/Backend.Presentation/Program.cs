@@ -1,11 +1,18 @@
 using System.Reflection;
 using Backend.Application;
+using Backend.Application.Common.FluentValidation;
 using Backend.Infrastructure;
+using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddProblemDetails(options =>
+{
+    options.IncludeExceptionDetails = (_, _) => false;
+});
 
 builder.Services.AddControllers();
 builder.Services.AddApplication();
@@ -15,8 +22,6 @@ string authority = builder.Configuration["Clerk:Authority"] ??
                    throw new InvalidOperationException("Clerk:Authority is not configured.");
 
 const string frontendCors = "FrontendCors";
-
-builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
@@ -95,6 +100,9 @@ app.UseCors(frontendCors);
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseProblemDetails();
+app.UseMiddleware<ValidationExceptionMiddleware>();
 
 app.MapControllers();
 
