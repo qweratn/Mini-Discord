@@ -16,8 +16,12 @@ services:
     environment:
       SERVER_URL: http://teamcity:8111
       AGENT_NAME: local-agent
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    group_add:
+      - "0"
     volumes:
       - teamcity-agent-conf:/data/teamcity_agent/conf
+      - /var/run/docker.sock.raw:/var/run/docker.sock
 
 volumes:
   teamcity_data:
