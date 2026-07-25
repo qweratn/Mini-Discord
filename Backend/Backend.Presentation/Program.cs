@@ -107,3 +107,5 @@ app.UseMiddleware<ValidationExceptionMiddleware>();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program;
