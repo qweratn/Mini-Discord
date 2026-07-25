@@ -1,0 +1,29 @@
+services:
+  teamcity:
+    image: jetbrains/teamcity-server:latest
+    container_name: teamcity
+    ports:
+      - "8111:8111"
+    volumes:
+      - teamcity_data:/data/teamcity_server/datadir
+      - teamcity_logs:/opt/teamcity/logs
+
+  teamcity-agent:
+    image: jetbrains/teamcity-agent:latest
+    container_name: teamcity-agent
+    depends_on:
+      - teamcity
+    environment:
+      SERVER_URL: http://teamcity:8111
+      AGENT_NAME: local-agent
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    group_add:
+      - "0"
+    volumes:
+      - teamcity-agent-conf:/data/teamcity_agent/conf
+      - /var/run/docker.sock.raw:/var/run/docker.sock
+
+volumes:
+  teamcity_data:
+  teamcity_logs:
+  teamcity-agent-conf:
