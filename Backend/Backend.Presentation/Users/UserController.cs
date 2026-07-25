@@ -28,7 +28,7 @@ public class UserController : ControllerBase
     /// <response code="401">The request has no valid Clerk token.</response>
     /// <response code="404">Username and email cannot be empty.</response>
     [HttpPut("sync")]
-    public async Task<IActionResult> SyncUser()
+    public async Task<IActionResult> SyncUser(CancellationToken cancellationToken)
     {
         string? clerkId = User.FindFirst("sub")?.Value;
         string? username = User.FindFirst("username")?.Value;
@@ -50,7 +50,7 @@ public class UserController : ControllerBase
         UpsertAppUser appUser = new UpsertAppUser(clerkId, username, email, imageUrl);
 
         await mediator.Send(
-            new SyncUserFromClerkCommand.Command(appUser));
+            new SyncUserFromClerkCommand.Command(appUser), cancellationToken);
         return Ok();
     }
 }

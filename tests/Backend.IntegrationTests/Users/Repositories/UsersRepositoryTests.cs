@@ -4,9 +4,9 @@ using Backend.Domain.Users;
 using Backend.IntegrationTests.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Backend.IntegrationTests.Users;
+namespace Backend.IntegrationTests.Users.Repositories;
 
-public sealed class UsersRepositoryTests :
+public class UsersRepositoryTests :
     IClassFixture<ApplicationTestServerFactory>,
     IAsyncLifetime
 {
