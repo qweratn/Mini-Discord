@@ -17,3 +17,5 @@ dotnet_diagnostic.SA1101.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.SA1629.severity = warning
+dotnet_diagnostic.CS8604.severity = none
+dotnet_diagnostic.CS8625.severity = none

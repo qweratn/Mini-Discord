@@ -1,3 +1,5 @@
+using Backend.Application.Common.FluentValidation;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Application;
@@ -15,6 +17,18 @@ public static class Configuration
     public static IServiceCollection AddApplication(
         this IServiceCollection services)
     {
+        services.AddValidatorsFromAssembly(
+            typeof(Configuration).Assembly);
+
+        services.AddMediatR(configuration =>
+        {
+            configuration.RegisterServicesFromAssembly(
+                typeof(Configuration).Assembly);
+
+            configuration.AddOpenBehavior(
+                typeof(ValidationBehavior<,>));
+        });
+
         return services;
     }
 }

@@ -1,4 +1,7 @@
+using Backend.Application.Common.Interfaces;
+using Backend.Application.Users.RequestHandlers.Interfaces;
 using Backend.Infrastructure.Data;
+using Backend.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +27,12 @@ public static class Configuration
         {
             options.UseNpgsql(configuration.GetConnectionString("PostgreSQL"));
         });
+
+        services.AddScoped<IUsersRepository, UsersRepository>();
+
+        services.AddScoped<IUnitOfWork>(provider =>
+            provider.GetRequiredService<ApplicationDbContext>());
+
         return services;
     }
 }

@@ -99,11 +99,15 @@ namespace Backend.Infrastructure.Data.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("Backend.Domain.Users.User", b =>
+            modelBuilder.Entity("Backend.Domain.Users.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("ClerkId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -112,7 +116,7 @@ namespace Backend.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -121,6 +125,9 @@ namespace Backend.Infrastructure.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClerkId")
+                        .IsUnique();
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -136,7 +143,7 @@ namespace Backend.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Backend.Domain.Users.User", null)
+                    b.HasOne("Backend.Domain.Users.AppUser", null)
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -145,7 +152,7 @@ namespace Backend.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Backend.Domain.Chats.Chat", b =>
                 {
-                    b.HasOne("Backend.Domain.Users.User", null)
+                    b.HasOne("Backend.Domain.Users.AppUser", null)
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -153,7 +160,7 @@ namespace Backend.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Backend.Domain.Messages.Message", b =>
                 {
-                    b.HasOne("Backend.Domain.Users.User", null)
+                    b.HasOne("Backend.Domain.Users.AppUser", null)
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Restrict)
