@@ -9,7 +9,10 @@ services:
       - teamcity_logs:/opt/teamcity/logs
 
   teamcity-agent:
-    image: jetbrains/teamcity-agent:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.teamcity-agent
+    image: mini-discord-teamcity-agent:local
     container_name: teamcity-agent
     depends_on:
       - teamcity
