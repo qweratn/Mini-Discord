@@ -38,6 +38,7 @@ public class SyncUserFromClerkCommandTests :
 
     public async Task InitializeAsync()
     {
+        await _factory.ResetDatabaseAsync();
         _appUser = AppUser.SyncFromClerk(
             clerkId: "clerk-123",
             username: "anton",
@@ -48,7 +49,6 @@ public class SyncUserFromClerkCommandTests :
             Username: "new username",
             Email: "new@example.com",
             ImageUrl: "https://new-example.com/avatar.png");
-        await _factory.ResetDatabaseAsync();
     }
 
     public async Task DisposeAsync()
