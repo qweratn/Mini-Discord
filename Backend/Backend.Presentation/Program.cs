@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Backend.Application;
 using Backend.Application.Common.FluentValidation;
 using Backend.Infrastructure;
@@ -14,7 +16,14 @@ builder.Services.AddProblemDetails(options =>
     options.IncludeExceptionDetails = (_, _) => false;
 });
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter(
+                JsonNamingPolicy.CamelCase));
+    });
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
