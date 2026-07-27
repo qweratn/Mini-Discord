@@ -50,17 +50,23 @@ public class Chat : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new DomainException("Server name cannot be empty.");
+            throw new DomainException(
+                "chat.server_name_empty",
+                "Server name cannot be empty.");
         }
 
         if (name.Length > MaxServerNameLength)
         {
-            throw new DomainException($"Server name cannot exceed {MaxServerNameLength} characters.");
+            throw new DomainException(
+                "chat.server_name_too_long",
+                $"Server name cannot exceed {MaxServerNameLength} characters.");
         }
 
         if (ownerId == Guid.Empty)
         {
-            throw new DomainException("Owner is required.");
+            throw new DomainException(
+                "chat.owner_required",
+                "Owner is required.");
         }
 
         Chat newServerChat = new Chat(name, ChatType.Server, ownerId);
@@ -75,12 +81,16 @@ public class Chat : AggregateRoot
     {
         if (userId1 == Guid.Empty || userId2 == Guid.Empty)
         {
-            throw new DomainException("Users are required.");
+            throw new DomainException(
+                "chat.direct_users_required",
+                "Users are required.");
         }
 
         if (userId1 == userId2)
         {
-            throw new DomainException("A direct chat cannot be created with the same user.");
+            throw new DomainException(
+                "chat.direct_with_self",
+                "A direct chat cannot be created with the same user.");
         }
 
         return new Chat(ChatType.Direct, userId1, userId2);

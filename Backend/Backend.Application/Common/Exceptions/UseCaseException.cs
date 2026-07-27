@@ -1,16 +1,16 @@
-namespace Backend.Domain.Common;
+namespace Backend.Application.Common.Exceptions;
 
 /// <summary>
-/// Represents a violation of a domain rule or invariant.
+/// Base exception for an expected application use-case failure.
 /// </summary>
-public sealed class DomainException : Exception
+public abstract class UseCaseException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DomainException"/> class.
+    /// Initializes a new instance of the <see cref="UseCaseException"/> class.
     /// </summary>
     /// <param name="code">A stable, machine-readable error code.</param>
     /// <param name="message">A human-readable error message.</param>
-    public DomainException(string code, string message)
+    protected UseCaseException(string code, string message)
         : base(message)
     {
         Code = code;

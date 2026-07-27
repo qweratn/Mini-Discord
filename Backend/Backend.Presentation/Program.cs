@@ -2,10 +2,13 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Backend.Application;
-using Backend.Application.Common.FluentValidation;
+using Backend.Application.Common.Exceptions;
+using Backend.Domain.Common;
 using Backend.Infrastructure;
+using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -14,6 +17,76 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails(options =>
 {
     options.IncludeExceptionDetails = (_, _) => false;
+
+    options.Map<ValidationException>(exception =>
+    {
+        Dictionary<string, string[]> errors = exception.Errors
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .Select(error => error.ErrorMessage)
+                    .ToArray());
+
+        return new ValidationProblemDetails(errors)
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Validation failed",
+            Detail = "One or more validation errors occurred.",
+            Extensions =
+            {
+                ["code"] = "validation.failed",
+            },
+        };
+    });
+
+    options.Map<DomainException>(exception =>
+        new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Domain rule violation",
+            Detail = exception.Message,
+            Extensions =
+            {
+                ["code"] = exception.Code,
+            },
+        });
+
+    options.Map<NotFoundException>(exception =>
+        new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = "Resource not found",
+            Detail = exception.Message,
+            Extensions =
+            {
+                ["code"] = exception.Code,
+            },
+        });
+
+    options.Map<ForbiddenException>(exception =>
+        new ProblemDetails
+        {
+            Status = StatusCodes.Status403Forbidden,
+            Title = "Forbidden",
+            Detail = exception.Message,
+            Extensions =
+            {
+                ["code"] = exception.Code,
+            },
+        });
+
+    options.Map<ConflictException>(exception =>
+        new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "Conflict",
+            Detail = exception.Message,
+            Extensions =
+            {
+                ["code"] = exception.Code,
+            },
+        });
 });
 
 builder.Services
@@ -111,7 +184,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseProblemDetails();
-app.UseMiddleware<ValidationExceptionMiddleware>();
 
 app.MapControllers();
 

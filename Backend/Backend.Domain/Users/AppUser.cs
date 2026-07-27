@@ -52,22 +52,30 @@ public class AppUser : AggregateRoot
     {
         if (string.IsNullOrEmpty(clerkId))
         {
-            throw new DomainException("Click ID cannot be null or empty.");
+            throw new DomainException(
+                "user.clerk_id_required",
+                "Clerk ID cannot be null or empty.");
         }
 
         if (string.IsNullOrWhiteSpace(username))
         {
-            throw new DomainException("Username cannot be empty.");
+            throw new DomainException(
+                "user.username_empty",
+                "Username cannot be empty.");
         }
 
         if (username.Length > MaxUsernameLength)
         {
-            throw new DomainException($"Username cannot exceed {MaxUsernameLength} characters.");
+            throw new DomainException(
+                "user.username_too_long",
+                $"Username cannot exceed {MaxUsernameLength} characters.");
         }
 
         if (string.IsNullOrWhiteSpace(email))
         {
-            throw new DomainException("Email cannot be empty.");
+            throw new DomainException(
+                "user.email_empty",
+                "Email cannot be empty.");
         }
 
         AppUser newAppUser = new AppUser(
@@ -90,12 +98,16 @@ public class AppUser : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(username))
         {
-            throw new DomainException("Username cannot be empty.");
+            throw new DomainException(
+                "user.username_empty",
+                "Username cannot be empty.");
         }
 
         if (string.IsNullOrWhiteSpace(email))
         {
-            throw new DomainException("Email cannot be empty.");
+            throw new DomainException(
+                "user.email_empty",
+                "Email cannot be empty.");
         }
 
         Username = username.Trim();

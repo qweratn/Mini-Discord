@@ -28,12 +28,16 @@ public class ChatMembership : AggregateRoot
     {
         if (chatId == Guid.Empty)
         {
-            throw new DomainException("Chat ID cannot be empty.");
+            throw new DomainException(
+                "chat_membership.chat_required",
+                "Chat ID cannot be empty.");
         }
 
         if (memberId == Guid.Empty)
         {
-            throw new DomainException("Member ID cannot be empty.");
+            throw new DomainException(
+                "chat_membership.member_required",
+                "Member ID cannot be empty.");
         }
 
         ChatMembership chatMembership = new ChatMembership(chatId, memberId);

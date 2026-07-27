@@ -1,6 +1,7 @@
 using Backend.Application.ChatMemberships.Interfaces;
 using Backend.Application.Chats.Interfaces;
 using Backend.Application.Chats.Models.Responses;
+using Backend.Application.Common.Exceptions;
 using Backend.Application.Common.Interfaces;
 using Backend.Application.Users.RequestHandlers.Interfaces;
 using Backend.Domain.ChatMemberships;
@@ -28,7 +29,9 @@ public class CreateServerChatCommand
             (string name, string clerkId) = request;
 
             AppUser owner = await usersRepository.GetUserByClerkIdAsync(clerkId)
-                            ?? throw new InvalidOperationException($"User with Clerk ID '{clerkId}' not found.");
+                            ?? throw new NotFoundException(
+                                "user.not_found",
+                                "User was not found.");
 
             Chat chat = Chat.CreateServer(name, owner.Id);
             chatsRepository.AddChat(chat);
