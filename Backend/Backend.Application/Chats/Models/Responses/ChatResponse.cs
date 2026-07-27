@@ -12,7 +12,7 @@ namespace Backend.Application.Chats.Models.Responses;
 /// <param name="CreatedAt">.</param>
 public record ChatResponse(
     Guid Id,
-    string Name,
+    string? Name,
     ChatType ChatType,
     Guid? OwnerId,
     DateTimeOffset CreatedAt);

@@ -59,10 +59,12 @@ public class SyncUserFromClerkCommandTests :
     [Fact]
     public async Task HandleSync_UserIsNull_ShouldSyncFromClerk()
     {
-        AppUser? userBeforeSync = await _usersRepository.GetUserByClerkIdAsync(_upsertAppUser.ClerkId);
+        AppUser? userBeforeSync = await _usersRepository
+            .GetUserByClerkIdAsync(_upsertAppUser.ClerkId, CancellationToken.None);
 
         await _mediator.Send(new SyncUserFromClerkCommand.Command(_upsertAppUser));
-        AppUser? userAfterSync = await _usersRepository.GetUserByClerkIdAsync(_upsertAppUser.ClerkId);
+        AppUser? userAfterSync = await _usersRepository
+            .GetUserByClerkIdAsync(_upsertAppUser.ClerkId, CancellationToken.None);
 
         Assert.Null(userBeforeSync);
         Assert.NotNull(userAfterSync);
@@ -79,7 +81,8 @@ public class SyncUserFromClerkCommandTests :
         await _unitOfWork.SaveChangesAsync(CancellationToken.None);
 
         await _mediator.Send(new SyncUserFromClerkCommand.Command(_upsertAppUser));
-        AppUser? userAfterSync = await _usersRepository.GetUserByClerkIdAsync(_upsertAppUser.ClerkId);
+        AppUser? userAfterSync = await _usersRepository
+            .GetUserByClerkIdAsync(_upsertAppUser.ClerkId, CancellationToken.None);
 
         Assert.NotNull(userAfterSync);
         Assert.Equal(_upsertAppUser.ClerkId, userAfterSync.ClerkId);

@@ -96,7 +96,7 @@ public class Chat : AggregateRoot
         return new Chat(ChatType.Direct, userId1, userId2);
     }
 
-    private static string GenerateDirectChatKey(Guid userId1, Guid userId2)
+    public static string GenerateDirectChatKey(Guid userId1, Guid userId2)
     {
         List<Guid> orderedIds = new List<Guid> { userId1, userId2 }.OrderBy(id => id).ToList();
         return $"{orderedIds[0]}_{orderedIds[1]}";

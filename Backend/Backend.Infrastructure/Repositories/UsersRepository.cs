@@ -14,9 +14,14 @@ public class UsersRepository : IUsersRepository
         this.context = context;
     }
 
-    public async Task<AppUser?> GetUserByClerkIdAsync(string clerkId)
+    public async Task<AppUser?> GetUserByClerkIdAsync(string clerkId, CancellationToken cancellationToken = default)
     {
-        return await context.Users.FirstOrDefaultAsync(u => u.ClerkId == clerkId);
+        return await context.Users.FirstOrDefaultAsync(u => u.ClerkId == clerkId, cancellationToken);
+    }
+
+    public async Task<AppUser?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
     public void AddUser(AppUser user)

@@ -1,6 +1,7 @@
 using Backend.Application.ChatMemberships.Interfaces;
 using Backend.Domain.ChatMemberships;
 using Backend.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Infrastructure.Repositories;
 

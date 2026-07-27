@@ -26,7 +26,8 @@ public class ChatController : ControllerBase
     /// </summary>
     /// <response code="200">Successfully create.</response>
     /// <response code="401">The request has no valid Clerk token.</response>
-    [HttpPost("/server")]
+    /// <response code="404">User not found.</response>
+    [HttpPost("server")]
     public async Task<IActionResult> CreateServerChat(
         [FromBody] string chatName,
         CancellationToken cancellationToken)
@@ -40,5 +41,26 @@ public class ChatController : ControllerBase
 
         return Ok(await mediator.Send(
             new CreateServerChatCommand.Command(chatName, clerkId), cancellationToken));
+    }
+
+    /// <summary>
+    /// Create a direct chat.
+    /// </summary>
+    /// <response code="200">Successfully create.</response>
+    /// <response code="401">The request has no valid Clerk token.</response>
+    [HttpPost("direct")]
+    public async Task<IActionResult> CreateDirectChat(
+        [FromBody] Guid companionId,
+        CancellationToken cancellationToken)
+    {
+        string? clerkId = User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(clerkId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await mediator.Send(
+            new CreateDirectChatCommand.Command(clerkId, companionId), cancellationToken));
     }
 }

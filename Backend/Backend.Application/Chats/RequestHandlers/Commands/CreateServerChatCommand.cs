@@ -28,7 +28,7 @@ public class CreateServerChatCommand
         {
             (string name, string clerkId) = request;
 
-            AppUser owner = await usersRepository.GetUserByClerkIdAsync(clerkId)
+            AppUser owner = await usersRepository.GetUserByClerkIdAsync(clerkId, cancellationToken)
                             ?? throw new NotFoundException(
                                 "user.not_found",
                                 "User was not found.");

@@ -54,7 +54,7 @@ public class UsersRepositoryTests :
 
         AppUser? savedUser =
             await _usersRepository
-                .GetUserByClerkIdAsync("clerk-123");
+                .GetUserByClerkIdAsync("clerk-123", CancellationToken.None);
         Assert.NotNull(savedUser);
         Assert.Equal(_appUser.Username, savedUser.Username);
         Assert.Equal(_appUser.Email, savedUser.Email);

@@ -7,7 +7,9 @@ namespace Backend.Application.Users.RequestHandlers.Interfaces;
 /// </summary>
 public interface IUsersRepository
 {
-    Task<AppUser?> GetUserByClerkIdAsync(string clerkId);
+    Task<AppUser?> GetUserByClerkIdAsync(string clerkId, CancellationToken cancellationToken);
+
+    Task<AppUser?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken);
 
     void AddUser(AppUser user);
 }

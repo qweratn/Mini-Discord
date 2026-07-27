@@ -8,4 +8,6 @@ namespace Backend.Application.Chats.Interfaces;
 public interface IChatsRepository
 {
     void AddChat(Chat chat);
+
+    Task<Chat?> GetDirectChatByKey(Guid userId, Guid companionId, CancellationToken cancellationToken);
 }

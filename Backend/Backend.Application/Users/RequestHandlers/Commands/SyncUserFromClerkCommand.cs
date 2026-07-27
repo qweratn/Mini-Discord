@@ -18,7 +18,7 @@ public class SyncUserFromClerkCommand
         public async Task Handle(Command request, CancellationToken cancellationToken)
         {
             (string clerkId, string username, string email, string imageUrl) = request.AppUser;
-            AppUser? user = await usersRepository.GetUserByClerkIdAsync(clerkId);
+            AppUser? user = await usersRepository.GetUserByClerkIdAsync(clerkId, cancellationToken);
 
             if (user == null)
             {
