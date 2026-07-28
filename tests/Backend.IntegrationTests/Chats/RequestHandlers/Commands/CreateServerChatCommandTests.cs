@@ -2,7 +2,7 @@ using Backend.Application.Chats.Models.Responses;
 using Backend.Application.Chats.RequestHandlers.Commands;
 using Backend.Application.Common.Exceptions;
 using Backend.Application.Common.Interfaces;
-using Backend.Application.Users.RequestHandlers.Interfaces;
+using Backend.Application.Users.Interfaces;
 using Backend.Domain.Enums;
 using Backend.Domain.Users;
 using Backend.IntegrationTests.Configuration;

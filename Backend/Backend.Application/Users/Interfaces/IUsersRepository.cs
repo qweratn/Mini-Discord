@@ -1,6 +1,6 @@
 using Backend.Domain.Users;
 
-namespace Backend.Application.Users.RequestHandlers.Interfaces;
+namespace Backend.Application.Users.Interfaces;
 
 /// <summary>
 /// Repository for User entities.

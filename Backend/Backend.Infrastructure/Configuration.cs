@@ -1,7 +1,7 @@
 using Backend.Application.ChatMemberships.Interfaces;
 using Backend.Application.Chats.Interfaces;
 using Backend.Application.Common.Interfaces;
-using Backend.Application.Users.RequestHandlers.Interfaces;
+using Backend.Application.Users.Interfaces;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;

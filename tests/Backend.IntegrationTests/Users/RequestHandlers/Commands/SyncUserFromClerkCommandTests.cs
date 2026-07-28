@@ -1,7 +1,7 @@
 using Backend.Application.Common.Interfaces;
+using Backend.Application.Users.Interfaces;
 using Backend.Application.Users.Models;
 using Backend.Application.Users.RequestHandlers.Commands;
-using Backend.Application.Users.RequestHandlers.Interfaces;
 using Backend.Domain.Users;
 using Backend.IntegrationTests.Configuration;
 using MediatR;
