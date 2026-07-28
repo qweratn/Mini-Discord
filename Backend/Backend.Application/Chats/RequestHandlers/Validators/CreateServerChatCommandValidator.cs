@@ -3,6 +3,10 @@ using FluentValidation;
 
 namespace Backend.Application.Chats.RequestHandlers.Validators;
 
+/// <summary>
+/// Validator for
+/// <see cref="CreateServerChatCommand"/>.
+/// </summary>
 public class CreateServerChatCommandValidator
     : AbstractValidator<CreateServerChatCommand.Command>
 {

@@ -6,6 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.IntegrationTests.Users.Repositories;
 
+///<summary>
+/// Tests for
+/// <see cref="IUsersRepository"/>.
+/// </summary>
 public class UsersRepositoryTests :
     IClassFixture<ApplicationTestServerFactory>,
     IAsyncLifetime

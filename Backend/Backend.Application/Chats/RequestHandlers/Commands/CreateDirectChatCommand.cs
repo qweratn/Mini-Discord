@@ -11,6 +11,9 @@ using MediatR;
 
 namespace Backend.Application.Chats.RequestHandlers.Commands;
 
+/// <summary>
+/// Command to create a new direct chat.
+/// </summary>
 public class CreateDirectChatCommand
 {
     public record Command(string ClerkId, Guid CompanionUserId) : IRequest<ChatResponse>;

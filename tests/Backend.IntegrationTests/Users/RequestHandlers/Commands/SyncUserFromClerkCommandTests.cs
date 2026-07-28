@@ -9,6 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.IntegrationTests.Users.RequestHandlers.Commands;
 
+///<summary>
+/// Tests for
+/// <see cref="SyncUserFromClerkCommand"/>.
+/// </summary>
 public class SyncUserFromClerkCommandTests :
     IClassFixture<ApplicationTestServerFactory>,
     IAsyncLifetime

@@ -3,6 +3,10 @@ using Backend.Domain.Messages;
 
 namespace Backend.UnitTests.Domain;
 
+///<summary>
+/// Tests for
+/// <see cref="Message"/>.
+/// </summary>
 public class MessageTests
 {
     private const string Content = "Hello world";

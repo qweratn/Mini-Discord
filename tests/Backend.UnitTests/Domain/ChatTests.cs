@@ -4,6 +4,10 @@ using Backend.Domain.Enums;
 
 namespace Backend.UnitTests.Domain;
 
+///<summary>
+/// Tests for
+/// <see cref="Chat"/>.
+/// </summary>
 public class ChatTests
 {
     private const string ChatName = "Test Chat";

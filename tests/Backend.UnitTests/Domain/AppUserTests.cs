@@ -3,6 +3,10 @@ using Backend.Domain.Users;
 
 namespace Backend.UnitTests.Domain;
 
+///<summary>
+/// Tests for
+/// <see cref="AppUser"/>.
+/// </summary>
 public class AppUserTests
 {
     private const string ClerkId = "user_clerk_id";

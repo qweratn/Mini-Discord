@@ -11,6 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.IntegrationTests.Chats.RequestHandlers.Commands;
 
+///<summary>
+/// Tests for
+/// <see cref="CreateServerChatCommand"/>.
+/// </summary>
 public class CreateServerChatCommandTests :
     IClassFixture<ApplicationTestServerFactory>,
     IAsyncLifetime
