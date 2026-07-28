@@ -1,5 +1,5 @@
 using Backend.Application.Common.Interfaces;
-using Backend.Application.Users.RequestHandlers.Interfaces;
+using Backend.Application.Users.Interfaces;
 using Backend.Domain.Users;
 using Backend.IntegrationTests.Configuration;
 using Microsoft.Extensions.DependencyInjection;
