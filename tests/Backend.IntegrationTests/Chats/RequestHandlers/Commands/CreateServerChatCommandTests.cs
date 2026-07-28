@@ -1,5 +1,3 @@
-using Backend.Application.ChatMemberships.Interfaces;
-using Backend.Application.Chats.Interfaces;
 using Backend.Application.Chats.Models.Responses;
 using Backend.Application.Chats.RequestHandlers.Commands;
 using Backend.Application.Common.Exceptions;
@@ -24,8 +22,6 @@ public class CreateServerChatCommandTests :
     private readonly AsyncServiceScope _scope;
     private readonly IMediator _mediator;
     private readonly IUsersRepository _usersRepository;
-    private readonly IChatsRepository _chatsRepository;
-    private readonly IChatMembershipsRepository _chatMembershipsRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     private AppUser _appUser = null!;
@@ -39,12 +35,6 @@ public class CreateServerChatCommandTests :
         _usersRepository =
             _scope.ServiceProvider
                 .GetRequiredService<IUsersRepository>();
-        _chatsRepository =
-            _scope.ServiceProvider
-                .GetRequiredService<IChatsRepository>();
-        _chatMembershipsRepository =
-            _scope.ServiceProvider
-                .GetRequiredService<IChatMembershipsRepository>();
         _unitOfWork =
             _scope.ServiceProvider
                 .GetRequiredService<IUnitOfWork>();
@@ -68,7 +58,7 @@ public class CreateServerChatCommandTests :
     }
 
     [Fact]
-    public async Task CreateServerChat_ShouldCreateNewServerChat()
+    public async Task HandleCreateServerChat_ShouldCreateNewServerChat()
     {
         ChatResponse response = await _mediator.Send(
             new CreateServerChatCommand.Command(ChatName, UserClerkId));
@@ -80,7 +70,7 @@ public class CreateServerChatCommandTests :
     }
 
     [Fact]
-    public async Task CreateServerChat_UserDoesNotExist_ShouldThrow()
+    public async Task HandleCreateServerChat_UserDoesNotExist_ShouldThrow()
     {
         string newUserClerkId = Guid.NewGuid().ToString();
         string exceptionCode = "user.not_found";
