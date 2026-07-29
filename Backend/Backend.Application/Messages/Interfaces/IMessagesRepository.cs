@@ -7,4 +7,6 @@ public interface IMessagesRepository
     Task<IReadOnlyDictionary<Guid, Message>> GetLastMessagesAsync(
         IReadOnlyCollection<Guid> chatIds,
         CancellationToken cancellationToken);
+
+    void AddMessage(Message message);
 }

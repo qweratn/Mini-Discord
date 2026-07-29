@@ -37,4 +37,9 @@ public class MessageRepository : IMessagesRepository
             x => x.ChatId,
             x => x);
     }
+
+    public void AddMessage(Message message)
+    {
+        context.Messages.Add(message);
+    }
 }

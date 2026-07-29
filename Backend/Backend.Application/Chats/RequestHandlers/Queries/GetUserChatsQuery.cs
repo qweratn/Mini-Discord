@@ -18,9 +18,9 @@ namespace Backend.Application.Chats.RequestHandlers.Queries;
 /// </summary>
 public class GetUserChatsQuery
 {
-    public sealed record Query(string ClerkId) : IRequest<IReadOnlyList<UserChatListItem>>;
+    public record Query(string ClerkId) : IRequest<IReadOnlyList<UserChatListItem>>;
 
-    public sealed class Handler(
+    public class Handler(
         IUsersRepository usersRepository,
         IChatsRepository chatsRepository,
         IChatMembershipsRepository membershipsRepository,
