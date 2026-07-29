@@ -40,4 +40,19 @@ public class ChatsRepository : IChatsRepository
                 c => c.DirectChatKey == Chat.GenerateDirectChatKey(userId, companionId),
                 cancellationToken: cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Chat>> GetUserChatsAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        return await context.ChatMemberships
+            .Where(membership => membership.MemberId == userId)
+            .Join(
+                context.Chats,
+                membership => membership.ChatId,
+                chat => chat.Id,
+                (_, chat) => chat)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
 }

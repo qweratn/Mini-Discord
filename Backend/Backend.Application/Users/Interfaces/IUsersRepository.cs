@@ -11,5 +11,9 @@ public interface IUsersRepository
 
     Task<AppUser?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<Dictionary<Guid, AppUser>> GetUsersByIdsAsync(
+        IEnumerable<Guid> userIds,
+        CancellationToken cancellationToken = default);
+
     void AddUser(AppUser user);
 }

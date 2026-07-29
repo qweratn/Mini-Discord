@@ -25,4 +25,22 @@ public class ChatMembershipsRepository : IChatMembershipsRepository
     {
         context.ChatMemberships.Add(chatMembership);
     }
+
+    /// <summary>
+    /// Find memberships for the specified chats.
+    /// </summary>
+    public async Task<IReadOnlyList<ChatMembership>> GetByChatIdsAsync(
+        IReadOnlyCollection<Guid> chatIds,
+        CancellationToken cancellationToken)
+    {
+        if (chatIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await context.ChatMemberships
+            .Where(membership => chatIds.Contains(membership.ChatId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
 }

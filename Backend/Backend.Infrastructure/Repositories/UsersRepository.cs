@@ -41,6 +41,19 @@ public class UsersRepository : IUsersRepository
     }
 
     /// <summary>
+    /// Find all users by ids.
+    /// </summary>
+    public async Task<Dictionary<Guid, AppUser>> GetUsersByIdsAsync(
+        IEnumerable<Guid> userIds,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.Users
+            .Where(x => userIds.Contains(x.Id))
+            .AsNoTracking()
+            .ToDictionaryAsync(x => x.Id, cancellationToken);
+    }
+
+    /// <summary>
     /// Add user to Database.
     /// </summary>
     public void AddUser(AppUser user)
