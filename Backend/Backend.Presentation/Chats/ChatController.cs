@@ -127,4 +127,37 @@ public class ChatController : ControllerBase
         return Ok(await mediator.Send(
             new GetChatInfoQuery.Query(clerkId, chatId), cancellationToken));
     }
+
+    /// <summary>
+    /// Join the chat.
+    /// </summary>
+    /// <response code="200">Success.</response>
+    /// <response code="401">The request has no valid Clerk token.</response>
+    /// <response code="404">
+    /// Possible reasons:
+    /// - User was not found.
+    /// - Chat was not found.
+    /// </response>
+    /// <response code="409">
+    /// Possible reasons:
+    /// - Direct chat was not support.
+    /// - Membership was already successfully joined.
+    /// </response>
+    [HttpPut("{chatId}/members/me")]
+    public async Task<IActionResult> JoinChat(
+        [FromRoute] Guid chatId,
+        CancellationToken cancellationToken)
+    {
+        string? clerkId = User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(clerkId))
+        {
+            return Unauthorized();
+        }
+
+        await mediator.Send(
+            new JoinChatCommand.Command(clerkId, chatId), cancellationToken);
+
+        return Ok();
+    }
 }
