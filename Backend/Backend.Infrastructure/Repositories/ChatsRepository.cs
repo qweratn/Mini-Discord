@@ -67,19 +67,4 @@ public class ChatsRepository : IChatsRepository
     {
         return await context.Chats.SingleOrDefaultAsync(chat => chat.Id == chatId, cancellationToken);
     }
-
-    public async Task<int> GetChatMembersCount(Guid chatId, CancellationToken cancellationToken)
-    {
-        Chat? chat = await GetChatInfoAsync(chatId, cancellationToken);
-
-        if (chat is null)
-        {
-            return 0;
-        }
-
-        return await context.ChatMemberships
-            .Where(x => x.ChatId == chatId)
-            .Select(x => x.MemberId)
-            .CountAsync(cancellationToken);
-    }
 }
