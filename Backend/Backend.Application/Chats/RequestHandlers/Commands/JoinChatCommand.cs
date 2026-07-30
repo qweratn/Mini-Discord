@@ -30,7 +30,7 @@ public class JoinChatCommand
 
             AppUser user = await usersRepository.GetUserByClerkIdAsync(clerkId, cancellationToken) ??
                            throw new NotFoundException(
-                               "user.noy_found",
+                               "user.not_found",
                                "User was not found.");
 
             Chat chat = await chatsRepository.GetChatByIdAsync(chatId, cancellationToken) ??
