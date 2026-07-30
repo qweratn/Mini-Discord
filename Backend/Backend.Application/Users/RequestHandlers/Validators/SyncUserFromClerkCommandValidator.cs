@@ -3,6 +3,10 @@ using FluentValidation;
 
 namespace Backend.Application.Users.RequestHandlers.Validators;
 
+/// <summary>
+/// Validators for
+/// <see cref="SyncUserFromClerkCommand"/>.
+/// </summary>
 public class SyncUserFromClerkCommandValidator
     : AbstractValidator<SyncUserFromClerkCommand.Command>
 {

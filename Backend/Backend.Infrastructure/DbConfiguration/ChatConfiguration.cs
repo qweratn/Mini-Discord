@@ -22,6 +22,10 @@ public class ChatConfiguration : IEntityTypeConfiguration<Chat>
             .HasConversion<string>();
 
         builder
+            .HasIndex(x => x.DirectChatKey)
+            .IsUnique();
+
+        builder
             .HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(x => x.OwnerId)

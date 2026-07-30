@@ -33,22 +33,30 @@ public class Message : AggregateRoot
     {
         if (chatId == Guid.Empty)
         {
-            throw new DomainException("Chat is required.");
+            throw new DomainException(
+                "message.chat_required",
+                "Chat is required.");
         }
 
         if (authorId == Guid.Empty)
         {
-            throw new DomainException("Author is required.");
+            throw new DomainException(
+                "message.author_required",
+                "Author is required.");
         }
 
         if (string.IsNullOrWhiteSpace(content))
         {
-            throw new DomainException("Message cannot be empty.");
+            throw new DomainException(
+                "message.content_empty",
+                "Message cannot be empty.");
         }
 
         if (content.Length > MaxContentLength)
         {
-            throw new DomainException($"Message cannot exceed {MaxContentLength} characters.");
+            throw new DomainException(
+                "message.content_too_long",
+                $"Message cannot exceed {MaxContentLength} characters.");
         }
 
         Message msg = new Message(content, authorId, chatId);

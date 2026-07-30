@@ -1,5 +1,8 @@
+using Backend.Application.ChatMemberships.Interfaces;
+using Backend.Application.Chats.Interfaces;
 using Backend.Application.Common.Interfaces;
-using Backend.Application.Users.RequestHandlers.Interfaces;
+using Backend.Application.Messages.Interfaces;
+using Backend.Application.Users.Interfaces;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +32,9 @@ public static class Configuration
         });
 
         services.AddScoped<IUsersRepository, UsersRepository>();
+        services.AddScoped<IChatsRepository, ChatsRepository>();
+        services.AddScoped<IChatMembershipsRepository, ChatMembershipsRepository>();
+        services.AddScoped<IMessagesRepository, MessageRepository>();
 
         services.AddScoped<IUnitOfWork>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());

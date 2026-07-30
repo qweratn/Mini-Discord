@@ -1,7 +1,7 @@
 using Backend.Application.Common.Interfaces;
+using Backend.Application.Users.Interfaces;
 using Backend.Application.Users.Models;
 using Backend.Application.Users.RequestHandlers.Commands;
-using Backend.Application.Users.RequestHandlers.Interfaces;
 using Backend.Domain.Users;
 using Backend.IntegrationTests.Configuration;
 using MediatR;
@@ -9,6 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.IntegrationTests.Users.RequestHandlers.Commands;
 
+///<summary>
+/// Tests for
+/// <see cref="SyncUserFromClerkCommand"/>.
+/// </summary>
 public class SyncUserFromClerkCommandTests :
     IClassFixture<ApplicationTestServerFactory>,
     IAsyncLifetime
@@ -38,6 +42,7 @@ public class SyncUserFromClerkCommandTests :
 
     public async Task InitializeAsync()
     {
+        await _factory.ResetDatabaseAsync();
         _appUser = AppUser.SyncFromClerk(
             clerkId: "clerk-123",
             username: "anton",
@@ -48,7 +53,6 @@ public class SyncUserFromClerkCommandTests :
             Username: "new username",
             Email: "new@example.com",
             ImageUrl: "https://new-example.com/avatar.png");
-        await _factory.ResetDatabaseAsync();
     }
 
     public async Task DisposeAsync()
@@ -59,10 +63,12 @@ public class SyncUserFromClerkCommandTests :
     [Fact]
     public async Task HandleSync_UserIsNull_ShouldSyncFromClerk()
     {
-        AppUser? userBeforeSync = await _usersRepository.GetUserByClerkIdAsync(_upsertAppUser.ClerkId);
+        AppUser? userBeforeSync = await _usersRepository
+            .GetUserByClerkIdAsync(_upsertAppUser.ClerkId, CancellationToken.None);
 
         await _mediator.Send(new SyncUserFromClerkCommand.Command(_upsertAppUser));
-        AppUser? userAfterSync = await _usersRepository.GetUserByClerkIdAsync(_upsertAppUser.ClerkId);
+        AppUser? userAfterSync = await _usersRepository
+            .GetUserByClerkIdAsync(_upsertAppUser.ClerkId, CancellationToken.None);
 
         Assert.Null(userBeforeSync);
         Assert.NotNull(userAfterSync);
@@ -79,7 +85,8 @@ public class SyncUserFromClerkCommandTests :
         await _unitOfWork.SaveChangesAsync(CancellationToken.None);
 
         await _mediator.Send(new SyncUserFromClerkCommand.Command(_upsertAppUser));
-        AppUser? userAfterSync = await _usersRepository.GetUserByClerkIdAsync(_upsertAppUser.ClerkId);
+        AppUser? userAfterSync = await _usersRepository
+            .GetUserByClerkIdAsync(_upsertAppUser.ClerkId, CancellationToken.None);
 
         Assert.NotNull(userAfterSync);
         Assert.Equal(_upsertAppUser.ClerkId, userAfterSync.ClerkId);

@@ -3,6 +3,10 @@ using Backend.Domain.Users;
 
 namespace Backend.UnitTests.Domain;
 
+///<summary>
+/// Tests for
+/// <see cref="AppUser"/>.
+/// </summary>
 public class AppUserTests
 {
     private const string ClerkId = "user_clerk_id";
@@ -28,7 +32,7 @@ public class AppUserTests
     [Fact]
     public void HandleSyncFormClerk_ClerkIdIsNull_ShouldThrow()
     {
-        string exceptionMessage = "Click ID cannot be null or empty.";
+        string exceptionMessage = "Clerk ID cannot be null or empty.";
 
         DomainException exception = Assert.Throws<DomainException>(() =>
             AppUser.SyncFromClerk(
@@ -37,6 +41,7 @@ public class AppUserTests
                 Email,
                 ImageUrl));
         Assert.Equal(exceptionMessage, exception.Message);
+        Assert.Equal("user.clerk_id_required", exception.Code);
     }
 
     [Theory]
