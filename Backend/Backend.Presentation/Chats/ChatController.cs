@@ -1,4 +1,3 @@
-using Backend.Application.Chats.Models.Responses;
 using Backend.Application.Chats.RequestHandlers.Commands;
 using Backend.Application.Chats.RequestHandlers.Queries;
 using MediatR;
@@ -93,5 +92,27 @@ public class ChatController : ControllerBase
 
         return Ok(await mediator.Send(
             new GetUserChatsQuery.Query(clerkId), cancellationToken));
+    }
+
+    /// <summary>
+    /// Get user`s chats.
+    /// </summary>
+    /// <response code="200">Success.</response>
+    /// <response code="401">The request has no valid Clerk token.</response>
+    /// <response code="404">Chat was not found.</response>
+    [HttpGet("{chatId}")]
+    public async Task<IActionResult> GetChatInfo(
+        [FromRoute] Guid chatId,
+        CancellationToken cancellationToken)
+    {
+        string? clerkId = User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(clerkId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await mediator.Send(
+            new GetChatInfoQuery.Query(clerkId, chatId), cancellationToken));
     }
 }

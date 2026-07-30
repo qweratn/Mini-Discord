@@ -1,4 +1,5 @@
 using Backend.Application.Chats.Interfaces;
+using Backend.Application.Chats.Models.Responses;
 using Backend.Domain.Chats;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,9 @@ public class ChatsRepository : IChatsRepository
                 cancellationToken: cancellationToken);
     }
 
+    /// <summary>
+    /// Find all user`s chats.
+    /// </summary>
     public async Task<IReadOnlyList<Chat>> GetUserChatsAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -54,5 +58,28 @@ public class ChatsRepository : IChatsRepository
                 (_, chat) => chat)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Find chat by chatId.
+    /// </summary>
+    public async Task<Chat?> GetChatInfoAsync(Guid chatId, CancellationToken cancellationToken)
+    {
+        return await context.Chats.SingleOrDefaultAsync(chat => chat.Id == chatId, cancellationToken);
+    }
+
+    public async Task<int> GetChatMembersCount(Guid chatId, CancellationToken cancellationToken)
+    {
+        Chat? chat = await GetChatInfoAsync(chatId, cancellationToken);
+
+        if (chat is null)
+        {
+            return 0;
+        }
+
+        return await context.ChatMemberships
+            .Where(x => x.ChatId == chatId)
+            .Select(x => x.MemberId)
+            .CountAsync(cancellationToken);
     }
 }

@@ -14,4 +14,8 @@ public interface IChatsRepository
     Task<IReadOnlyList<Chat>> GetUserChatsAsync(
         Guid userId,
         CancellationToken cancellationToken);
+
+    Task<Chat?> GetChatInfoAsync(Guid chatId, CancellationToken cancellationToken);
+
+    Task<int> GetChatMembersCount(Guid chatId, CancellationToken cancellationToken);
 }
