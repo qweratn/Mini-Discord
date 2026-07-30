@@ -95,11 +95,23 @@ public class ChatController : ControllerBase
     }
 
     /// <summary>
-    /// Get user`s chats.
+    /// Get chat by chatId.
     /// </summary>
     /// <response code="200">Success.</response>
     /// <response code="401">The request has no valid Clerk token.</response>
-    /// <response code="404">Chat was not found.</response>
+    /// <response code="403">User is not a member of this chat.</response>
+    /// <response code="404">
+    /// Possible reasons:
+    /// - User was not found.
+    /// - Chat was not found.
+    /// - Companion was not found.
+    /// </response>
+    /// <response code="409">
+    /// Possible reasons:
+    /// - Server chat name is missing.
+    /// - Direct chat must contain the current user and exactly one companion.
+    /// - Chat type is invalid.
+    /// </response>
     [HttpGet("{chatId}")]
     public async Task<IActionResult> GetChatInfo(
         [FromRoute] Guid chatId,
