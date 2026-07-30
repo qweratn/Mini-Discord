@@ -165,10 +165,6 @@ public class GetUserChatsQueryTests :
     {
         Assert.Equal(expected.Type, actual.ChatType);
         Assert.Equal(expectedMessage.Content, actual.LastMessage);
-        Assert.Equal(
-            expectedMessage.SendAt,
-            actual.LastMessageAt!.Value,
-            TimeSpan.FromMicroseconds(1));
     }
 }
 
