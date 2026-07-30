@@ -35,7 +35,7 @@ public class GetChatInfoQuery
                                "user.not_found",
                                "User was not found.");
 
-            Chat chat = await chatsRepository.GetChatInfoAsync(chatId, cancellationToken) ??
+            Chat chat = await chatsRepository.GetChatByIdAsync(chatId, cancellationToken) ??
                    throw new NotFoundException(
                        "chat.not_found",
                        "Chat was not found.");

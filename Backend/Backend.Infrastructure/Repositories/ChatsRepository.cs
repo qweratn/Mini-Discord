@@ -63,7 +63,7 @@ public class ChatsRepository : IChatsRepository
     /// <summary>
     /// Find chat by chatId.
     /// </summary>
-    public async Task<Chat?> GetChatInfoAsync(Guid chatId, CancellationToken cancellationToken)
+    public async Task<Chat?> GetChatByIdAsync(Guid chatId, CancellationToken cancellationToken)
     {
         return await context.Chats.SingleOrDefaultAsync(chat => chat.Id == chatId, cancellationToken);
     }

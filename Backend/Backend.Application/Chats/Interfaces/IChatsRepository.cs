@@ -15,5 +15,5 @@ public interface IChatsRepository
         Guid userId,
         CancellationToken cancellationToken);
 
-    Task<Chat?> GetChatInfoAsync(Guid chatId, CancellationToken cancellationToken);
+    Task<Chat?> GetChatByIdAsync(Guid chatId, CancellationToken cancellationToken);
 }
