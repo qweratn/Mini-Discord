@@ -38,7 +38,7 @@ public class GetChatInfoQuery
             Chat chat = await chatsRepository.GetChatInfoAsync(chatId, cancellationToken) ??
                    throw new NotFoundException(
                        "chat.not_found",
-                       "Chat was not found");
+                       "Chat was not found.");
 
             IReadOnlyList<ChatMembership> memberships =
                 await chatMembershipsRepository.GetByChatIdsAsync([chatId], cancellationToken);
