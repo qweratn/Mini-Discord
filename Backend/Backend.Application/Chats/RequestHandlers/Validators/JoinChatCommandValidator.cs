@@ -3,6 +3,9 @@ using FluentValidation;
 
 namespace Backend.Application.Chats.RequestHandlers.Validators;
 
+/// <summary>
+/// Validator for <see cref="JoinChatCommand"/>.
+/// </summary>
 public class JoinChatCommandValidator
     : AbstractValidator<JoinChatCommand.Command>
 {
