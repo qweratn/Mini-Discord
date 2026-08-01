@@ -168,7 +168,7 @@ public class ChatController : ControllerBase
     /// <response code="401">The request has no valid Clerk token.</response>
     /// <response code="404">
     /// Possible reasons:
-    /// - "Actor user was not found.
+    /// - Actor user was not found.
     /// - Target user was not found.
     /// - Chat was not found.
     /// </response>
