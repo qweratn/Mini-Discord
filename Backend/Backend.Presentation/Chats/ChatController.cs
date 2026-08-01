@@ -196,4 +196,18 @@ public class ChatController : ControllerBase
 
         return Ok();
     }
+
+    /// <summary>
+    /// Get chat members.
+    /// </summary>
+    /// <response code="200">Success.</response>
+    /// <response code="401">The request has no valid Clerk token.</response>
+    [HttpGet("{chatId}/members")]
+    public async Task<IActionResult> GetChatMembers(
+        [FromRoute] Guid chatId,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(
+            new GetChatMembersQuery.Query(chatId), cancellationToken));
+    }
 }
