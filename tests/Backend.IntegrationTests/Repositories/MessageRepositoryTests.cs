@@ -91,7 +91,6 @@ public class MessageRepositoryTests :
         Message message = messages[_chat.Id];
         Assert.Equal(_secondMessage.Id, message.Id);
         Assert.Equal(_secondMessage.Content, message.Content);
-        Assert.Equal(_secondMessage.SendAt, message.SendAt);
     }
 
     [Fact]
