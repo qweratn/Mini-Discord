@@ -1,3 +1,4 @@
+using Backend.Application.Chats.Models.Request;
 using Backend.Application.Chats.RequestHandlers.Commands;
 using Backend.Application.Chats.RequestHandlers.Queries;
 using MediatR;
@@ -209,5 +210,38 @@ public class ChatController : ControllerBase
     {
         return Ok(await mediator.Send(
             new GetChatMembersQuery.Query(chatId), cancellationToken));
+    }
+
+    /// <summary>
+    /// Send message to the chat.
+    /// </summary>
+    /// <response code="200">Success.</response>
+    /// <response code="401">The request has no valid Clerk token.</response>
+    /// <response code="404">
+    /// Possible reasons:
+    /// - Author user was not found.
+    /// - Chat was not found.
+    /// - Author is not a member of this chat.
+    /// </response>
+    /// <response code="409">Author is not a member of this chat.</response>
+    [HttpPost("{chatId}/messages")]
+    public async Task<IActionResult> SendMessage(
+        [FromRoute] Guid chatId,
+        [FromBody] string content,
+        CancellationToken cancellationToken)
+    {
+        string? clerkId = User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(clerkId))
+        {
+            return Unauthorized();
+        }
+
+        SendMessage message = new SendMessage(content, clerkId, chatId);
+
+        await mediator.Send(
+            new SendMessageCommand.Command(message), cancellationToken);
+
+        return Ok();
     }
 }
