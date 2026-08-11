@@ -10,12 +10,14 @@ namespace Backend.Application.Chats.RequestHandlers.Validators;
 public class CreateServerChatCommandValidator
     : AbstractValidator<CreateServerChatCommand.Command>
 {
+    private const int MaxServerNameLength = 64;
+
     public CreateServerChatCommandValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(64)
-            .WithMessage("Name cannot exceed 64 characters");
+            .MaximumLength(MaxServerNameLength)
+            .WithMessage($"Name cannot exceed {MaxServerNameLength} characters");
 
         RuleFor(x => x.ClerkId)
             .NotEmpty();
