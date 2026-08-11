@@ -27,6 +27,7 @@ public class MessageRepositoryTests :
 
     private AppUser _user = null!;
     private Chat _chat = null!;
+    private Chat _emptyChat = null!;
     private Message _firstMessage = null!;
     private Message _secondMessage = null!;
 
@@ -58,6 +59,7 @@ public class MessageRepositoryTests :
             email: "anton@example.com",
             imageUrl: "https://example.com/avatar.png");
         _chat = Chat.CreateServer("Test", _user.Id);
+        _emptyChat = Chat.CreateServer("Test", _user.Id);
         _firstMessage = Message.Create(
             "first message",
             _user.Id,
@@ -68,6 +70,7 @@ public class MessageRepositoryTests :
             _chat.Id);
         _usersRepository.AddUser(_user);
         _chatsRepository.AddChat(_chat);
+        _chatsRepository.AddChat(_emptyChat);
         _messagesRepository.AddMessage(_firstMessage);
         _messagesRepository.AddMessage(_secondMessage);
         await _unitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -103,5 +106,55 @@ public class MessageRepositoryTests :
             await _messagesRepository.GetLastMessagesAsync(chatIds, CancellationToken.None);
 
         Assert.Empty(messages);
+    }
+
+    [Fact]
+    public async Task HandleGetMessageById_MessageExists_ShouldReturn()
+    {
+        Message? message = await _messagesRepository
+            .GetMessageByIdAsync(_firstMessage.Id, CancellationToken.None);
+
+        Assert.NotNull(message);
+        Assert.Equal(_firstMessage.Id, message.Id);
+        Assert.Equal(_firstMessage.Content, message.Content);
+        Assert.Equal(_chat.Id, message.ChatId);
+    }
+
+    [Fact]
+    public async Task HandleGetMessageById_MessageDoesNotExist_ShouldReturnNull()
+    {
+        Guid nonExistentMessageId = Guid.NewGuid();
+
+        Message? message = await _messagesRepository
+            .GetMessageByIdAsync(nonExistentMessageId, CancellationToken.None);
+
+        Assert.Null(message);
+    }
+
+    [Fact]
+    public async Task HandleGetChatMessages_EmptyChat_ShouldReturnEmptyList()
+    {
+        IReadOnlyList<Message> messages = await _messagesRepository.GetChatMessagesAsync(
+                _emptyChat.Id,
+                null,
+                null,
+                10,
+                CancellationToken.None);
+
+        Assert.Empty(messages);
+    }
+
+    [Fact]
+    public async Task HandleGetChatMessages_ShouldReturnChatMessages()
+    {
+        IReadOnlyList<Message> messages = await _messagesRepository.GetChatMessagesAsync(
+                _chat.Id,
+                null,
+                null,
+                2,
+                CancellationToken.None);
+
+        Assert.NotEmpty(messages);
+        Assert.Equal(2, messages.Count);
     }
 }

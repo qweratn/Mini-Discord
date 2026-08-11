@@ -60,14 +60,13 @@ public class MessageRepository : IMessagesRepository
         IQueryable<Message> query = context.Messages
             .Where(x => x.ChatId == chatId);
 
-        if (beforeSentAt.HasValue)
+        if (beforeSentAt.HasValue &&
+            beforeMessageId.HasValue)
         {
-            query = query.Where(x => x.SendAt < beforeSentAt.Value);
-        }
-
-        if (beforeMessageId.HasValue)
-        {
-            query = query.Where(x => x.Id < beforeMessageId.Value);
+            query = query.Where(message =>
+                message.SendAt < beforeSentAt.Value ||
+                (message.SendAt == beforeSentAt.Value &&
+                 message.Id.CompareTo(beforeMessageId.Value) < 0));
         }
 
         return await query
