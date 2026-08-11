@@ -42,4 +42,39 @@ public class MessageRepository : IMessagesRepository
     {
         context.Messages.Add(message);
     }
+
+    public async Task<Message?> GetMessageByIdAsync(Guid messageId, CancellationToken cancellationToken)
+    {
+        return await context.Messages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == messageId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Message>> GetChatMessagesAsync(
+        Guid chatId,
+        DateTimeOffset? beforeSentAt,
+        Guid? beforeMessageId,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<Message> query = context.Messages
+            .Where(x => x.ChatId == chatId);
+
+        if (beforeSentAt.HasValue)
+        {
+            query = query.Where(x => x.SendAt < beforeSentAt.Value);
+        }
+
+        if (beforeMessageId.HasValue)
+        {
+            query = query.Where(x => x.Id < beforeMessageId.Value);
+        }
+
+        return await query
+            .OrderByDescending(x => x.SendAt)
+            .ThenByDescending(x => x.Id)
+            .Take(take)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
 }
