@@ -5,6 +5,7 @@ using Backend.Application;
 using Backend.Application.Common.Exceptions;
 using Backend.Domain.Common;
 using Backend.Infrastructure;
+using Backend.Presentation.Hubs;
 using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -141,6 +142,23 @@ builder.Services
 
             NameClaimType = "sub",
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                string accessToken = context.Request.Query["access_token"];
+                PathString path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/chat"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
+        };
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -168,6 +186,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddSignalR();
+
 WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -186,6 +206,8 @@ app.UseAuthorization();
 app.UseProblemDetails();
 
 app.MapControllers();
+
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
 
