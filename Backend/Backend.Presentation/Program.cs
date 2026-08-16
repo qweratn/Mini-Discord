@@ -5,11 +5,14 @@ using Backend.Application;
 using Backend.Application.Common.Exceptions;
 using Backend.Domain.Common;
 using Backend.Infrastructure;
+using Backend.Infrastructure.Data;
 using Backend.Presentation.Hubs;
+using Backend.Presentation.Outbox;
 using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -188,7 +191,19 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddSignalR();
 
+builder.Services.AddHostedService<OutboxBackgroundService>();
+
 WebApplication app = builder.Build();
+
+await using (AsyncServiceScope scope =
+             app.Services.CreateAsyncScope())
+{
+    ApplicationDbContext dbContext =
+        scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {

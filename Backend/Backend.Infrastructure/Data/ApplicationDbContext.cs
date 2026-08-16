@@ -3,6 +3,7 @@ using Backend.Domain.ChatMemberships;
 using Backend.Domain.Chats;
 using Backend.Domain.Messages;
 using Backend.Domain.Users;
+using Backend.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Infrastructure.Data;
@@ -24,6 +25,8 @@ public class ApplicationDbContext : DbContext, IUnitOfWork
     public DbSet<ChatMembership> ChatMemberships { get; set; }
 
     public DbSet<Message> Messages { get; set; }
+
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

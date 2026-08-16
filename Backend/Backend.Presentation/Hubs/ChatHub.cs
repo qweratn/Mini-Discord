@@ -10,5 +10,4 @@ namespace Backend.Presentation.Hubs;
 [Authorize]
 public class ChatHub : Hub<IChatClient>
 {
-
 }
