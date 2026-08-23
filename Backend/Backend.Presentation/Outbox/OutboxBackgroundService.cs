@@ -3,6 +3,7 @@ using Backend.Application.Common.Exceptions;
 using Backend.Application.SignalR.Interfaces;
 using Backend.Domain.ChatMemberships;
 using Backend.Domain.Common;
+using Backend.Domain.Messages;
 using Backend.Domain.Users;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Outbox;
@@ -53,6 +54,13 @@ public class OutboxBackgroundService(
                                     db,
                                     hubContext,
                                     chatMemberJoinedEvent,
+                                    stoppingToken);
+                                break;
+                            case MessageSentDomainEvent messageSentEvent:
+                                await SendMessageReceived(
+                                    db,
+                                    hubContext,
+                                    messageSentEvent,
                                     stoppingToken);
                                 break;
                             default:
@@ -118,5 +126,37 @@ public class OutboxBackgroundService(
         await hubContext.Clients
             .Group(groupName)
             .ChatMemberJoined(memberJoined.ChatId, memberInfo);
+    }
+
+    private async Task SendMessageReceived(
+        ApplicationDbContext db,
+        IHubContext<ChatHub, IChatClient> hubContext,
+        MessageSentDomainEvent messageSent,
+        CancellationToken cancellationToken)
+    {
+        AppUser author = await db.Users
+                             .AsNoTracking()
+                             .FirstOrDefaultAsync(
+                                 user => user.Id == messageSent.AuthorId,
+                                 cancellationToken)
+                         ?? throw new InvalidOperationException(
+                             "Message author was not found.");
+
+        ChatMessageResponse response = new(
+            messageSent.MessageId,
+            messageSent.ChatId,
+            messageSent.Content,
+            new MessageAuthorResponse(
+                author.Id,
+                author.Username,
+                author.ImageUrl),
+            messageSent.OccurredAtUtc);
+
+        string groupName =
+            $"chat:{messageSent.ChatId:N}";
+
+        await hubContext.Clients
+            .Group(groupName)
+            .MessageReceived(response);
     }
 }

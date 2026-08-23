@@ -62,7 +62,7 @@ public class Message : AggregateRoot
         Message msg = new Message(content, authorId, chatId);
 
         msg.AddDomainEvent(
-            new MessageSentDomainEvent(msg.Content, msg.AuthorId, msg.ChatId, msg.SendAt));
+            new MessageSentDomainEvent(msg.Id, msg.Content, msg.AuthorId, msg.ChatId, msg.SendAt));
 
         return msg;
     }
