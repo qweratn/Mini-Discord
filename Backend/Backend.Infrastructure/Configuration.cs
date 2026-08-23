@@ -4,6 +4,7 @@ using Backend.Application.Common.Interfaces;
 using Backend.Application.Messages.Interfaces;
 using Backend.Application.Users.Interfaces;
 using Backend.Infrastructure.Data;
+using Backend.Infrastructure.Outbox;
 using Backend.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,11 +27,20 @@ public static class Configuration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>(
+            (serviceProvider, options) =>
         {
             options.UseNpgsql(configuration.GetConnectionString("PostgreSQL"));
+
+            options.AddInterceptors(
+                serviceProvider.GetRequiredService<
+                    ConvertDomainEventsToOutboxMessagesInterceptor>());
         });
 
+        services.AddSingleton<OutboxEventSerializer>();
+
+        services.AddScoped<
+            ConvertDomainEventsToOutboxMessagesInterceptor>();
         services.AddScoped<IUsersRepository, UsersRepository>();
         services.AddScoped<IChatsRepository, ChatsRepository>();
         services.AddScoped<IChatMembershipsRepository, ChatMembershipsRepository>();

@@ -13,19 +13,19 @@ public abstract class AggregateRoot
     public IReadOnlyCollection<IDomainEvent> DomainEvents => this.domainEvents;
 
     /// <summary>
+    /// Method of clearing domain events from the aggregate root.
+    /// </summary>
+    public void ClearDomainEvents()
+    {
+        domainEvents.Clear();
+    }
+
+    /// <summary>
     /// Method of adding a domain event to the aggregate root.
     /// </summary>
     /// <param name="domainEvent">Domain event.</param>
     protected void AddDomainEvent(IDomainEvent domainEvent)
     {
-        this.domainEvents.Add(domainEvent);
-    }
-
-    /// <summary>
-    /// Method of clearing domain events from the aggregate root.
-    /// </summary>
-    protected void ClearDomainEvents()
-    {
-        this.domainEvents.Clear();
+        domainEvents.Add(domainEvent);
     }
 }
