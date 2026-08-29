@@ -1,5 +1,7 @@
 import { Route, Routes } from "react-router";
 import { useUserSync } from "@/feature/users/use-user-sync";
+import GuestRoute from "@/shared/auth/GuestRoute";
+import ProtectedRoute from "@/shared/auth/ProtectedRoute";
 import { useApiClientAuth } from "@/shared/api/use-api-client-auth";
 import Loading from "@/shared/ui/Loading";
 import Chats from "./pages/Chats/Chats";
@@ -18,11 +20,16 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/sign-in" element={<SignIn />} />
-      <Route path="/sign-up" element={<SignUp />} />
-      <Route path="/verify-otp" element={<VerifyOtp />} />
-      <Route path="/chats" element={<Chats />} />
+      <Route element={<GuestRoute />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
+      </Route>
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/chats" element={<Chats />} />
+      </Route>
 
       <Route path="*" element={<div>404</div>} />
     </Routes>
