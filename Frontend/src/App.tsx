@@ -6,6 +6,7 @@ import { useApiClientAuth } from "@/shared/api/use-api-client-auth";
 import Loading from "@/shared/ui/Loading";
 import Chats from "./pages/Chats/Chats";
 import Home from "./pages/Home/Home";
+import Profile from "./pages/Profile/Profile";
 import SignIn from "./pages/SignIn/SignIn";
 import SignUp from "./pages/SignUp/SignUp";
 import VerifyOtp from "./pages/VerifyOtp/VerifyOtp";
@@ -29,6 +30,7 @@ function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/chats" element={<Chats />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       <Route path="*" element={<div>404</div>} />
