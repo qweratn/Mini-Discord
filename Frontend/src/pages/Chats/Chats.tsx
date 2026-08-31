@@ -9,7 +9,7 @@ import {
   UserPlusIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,32 +18,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { getUsersChats } from "@/feature/chats/chats-api";
+import type { Chat } from "@/feature/chats/chat-types";
 import { cn } from "@/lib/utils";
-
-const chats = [
-  {
-    name: "Алексей",
-    initials: "А",
-    preview: "Супер, жду ревью!",
-    time: "10:29",
-    color: "bg-[#435bb3]",
-  },
-  {
-    name: "Мария",
-    initials: "М",
-    preview: "Макет уже почти готов ✨",
-    time: "10:26",
-    color: "bg-[#397a72]",
-  },
-  {
-    name: "Frontend Team",
-    initials: "FT",
-    preview: "Супер, жду ревью!",
-    time: "10:29",
-    color: "bg-[#36449b]",
-    isGroup: true,
-  },
-];
+import { toastManager } from "@/lib/toast";
 
 const messages = [
   {
@@ -90,22 +69,20 @@ const members = [
 function UserAvatar({
   name,
   initials,
-  color,
   imageUrl,
   className,
 }: {
   name: string;
   initials: string;
-  color: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
   className?: string;
 }) {
   return (
     <Avatar
-      className={cn("size-11 ring-1 ring-white/10", color, className)}
+      className={cn("size-11 ring-1 ring-white/10 bg-[#4f46a8]", className)}
     >
       {imageUrl && <AvatarImage src={imageUrl} alt={`Аватар ${name}`} />}
-      <AvatarFallback className={cn("font-semibold text-white", color)}>
+      <AvatarFallback className={cn("font-semibold text-white bg-[#4f46a8]")}>
         {initials}
       </AvatarFallback>
     </Avatar>
@@ -114,12 +91,105 @@ function UserAvatar({
 
 export default function Chats() {
   const { user } = useUser();
-  const [activeChatName, setActiveChatName] = useState("Frontend Team");
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const username = user?.username ?? user?.fullName ?? "anton_dev";
   const userInitials = username.slice(0, 2).toUpperCase();
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const activeChat =
-    chats.find((chat) => chat.name === activeChatName) ?? chats[2];
+    chats.find((chat) => chat.chatId === activeChatId) ?? chats[0];
+
+  useEffect(() => {
+    async function loadChats() {
+      try {
+        setLoading(true);
+        setLoadError(null);
+
+        const loadedChats = await getUsersChats();
+
+        setChats(loadedChats);
+        setActiveChatId((currentChatId) =>
+          loadedChats.some((chat) => chat.chatId === currentChatId)
+            ? currentChatId
+            : (loadedChats[0]?.chatId ?? null),
+        );
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Неизвестная ошибка при загрузке чатов";
+
+        console.error(error);
+        setLoadError(message);
+        toastManager.add({
+          type: "error",
+          title: "Ошибка при загрузке чатов",
+          description: message,
+        });
+      } finally {
+          setLoading(false);
+      }
+    }
+
+    void loadChats();
+
+  }, [reloadKey]);
+
+    function formatMessageTime(value: string | null): string {
+        if (!value) {
+            return "";
+        }
+
+        return new Intl.DateTimeFormat("ru-RU", {
+            hour: "2-digit",
+            minute: "2-digit",
+        }).format(new Date(value));
+    }
+
+    if (loading) {
+    return (
+      <main className="flex h-dvh items-center justify-center bg-[#080c1c] text-white">
+        <div className="flex flex-col items-center gap-3 text-[#aab0c3]">
+          <Spinner className="size-8" />
+          <p>Загружаем чаты...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <main className="flex h-dvh items-center justify-center bg-[#080c1c] px-4 text-white">
+        <div className="flex max-w-md flex-col items-center text-center">
+          <h1 className="text-xl font-bold">Не удалось загрузить чаты</h1>
+          <p className="mt-2 text-sm text-[#969bb5]">{loadError}</p>
+          <Button
+            type="button"
+            className="mt-5 bg-[#5f6ff1] text-white hover:bg-[#7180f8]"
+            onClick={() => setReloadKey((current) => current + 1)}
+          >
+            Попробовать снова
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
+  if (!activeChat) {
+    return (
+      <main className="flex h-dvh items-center justify-center bg-[#080c1c] px-4 text-white">
+        <div className="text-center">
+          <h1 className="text-xl font-bold">У вас пока нет чатов</h1>
+          <p className="mt-2 text-sm text-[#969bb5]">
+            Создайте новый чат, чтобы начать общение.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="h-dvh overflow-hidden bg-[#080c1c] text-white">
@@ -177,34 +247,34 @@ export default function Chats() {
                   type="button"
                   variant="ghost"
                   onClick={() => {
-                    setActiveChatName(chat.name);
+                    setActiveChatId(chat.chatId);
                     setIsMobileChatOpen(true);
                   }}
                   className={cn(
                     "h-auto w-full justify-start gap-3 rounded-xl px-3 py-3 text-left text-white hover:bg-white/5 hover:text-white",
-                    chat.name === activeChatName &&
+                    chat.chatId === activeChatId &&
                       "border border-[#384372] bg-[#222a4d] shadow-md shadow-black/10 hover:bg-[#273057]",
                   )}
                 >
                   <UserAvatar
                     name={chat.name}
-                    initials={chat.initials}
-                    color={chat.color}
+                    initials={chat.name[0]}
+                    imageUrl={chat?.imageUrl}
                   />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                       <span className="truncate text-sm font-semibold">
                         {chat.name}
                       </span>
-                      {chat.isGroup && (
+                      {chat.chatType === "server" && (
                         <UsersRoundIcon className="size-3.5 shrink-0 text-[#7f8cff]" />
                       )}
                       <span className="ml-auto shrink-0 text-xs font-normal text-[#7f859c]">
-                        {chat.time}
+                        {formatMessageTime(chat.lastMessageAt)}
                       </span>
                     </span>
                     <span className="mt-1 block truncate text-xs font-normal text-[#959bb1]">
-                      {chat.preview}
+                      {chat.lastMessage}
                     </span>
                   </span>
                 </Button>
@@ -220,7 +290,6 @@ export default function Chats() {
                   <UserAvatar
                     name={username}
                     initials={userInitials}
-                    color="bg-[#4f46a8]"
                     imageUrl={user?.imageUrl}
                     className="size-10"
                   />
@@ -256,8 +325,7 @@ export default function Chats() {
             </Button>
             <UserAvatar
               name={activeChat.name}
-              initials={activeChat.initials}
-              color={activeChat.color}
+              initials={activeChat.name[0]}
               className="size-11"
             />
             <div className="min-w-0 flex-1">
@@ -265,10 +333,10 @@ export default function Chats() {
                 {activeChat.name}
               </h2>
               <p className="mt-0.5 text-xs text-[#959bb1]">
-                {activeChat.isGroup ? "8 участников" : "Личный чат"}
+                {activeChat.chatType === "server" ? "8 участников" : "Личный чат"}
               </p>
             </div>
-            {activeChat.isGroup && (
+            {activeChat.chatType === "server" && (
               <Button
                 type="button"
                 variant="outline"
@@ -317,7 +385,6 @@ export default function Chats() {
                         initials={
                           isCurrentUser ? userInitials : message.initials
                         }
-                        color={message.color}
                         imageUrl={isCurrentUser ? user?.imageUrl : undefined}
                         className="size-9 sm:size-10"
                       />
@@ -391,7 +458,7 @@ export default function Chats() {
         <aside
           className={cn(
             "hidden h-full w-64 shrink-0 flex-col border-l border-[#29304e] bg-[#0e1428]",
-            activeChat.isGroup && "xl:flex",
+            activeChat.chatType === "server" && "xl:flex",
           )}
         >
           <div className="px-5 pt-7 pb-5">
@@ -413,7 +480,6 @@ export default function Chats() {
                 <UserAvatar
                   name={member.name}
                   initials={member.initials}
-                  color={member.color}
                   imageUrl={
                     member.name === "anton_dev" ? user?.imageUrl : undefined
                   }
