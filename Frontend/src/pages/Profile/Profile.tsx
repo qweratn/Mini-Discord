@@ -1,17 +1,24 @@
 import { useClerk, useUser } from "@clerk/react";
 import {
+  CameraIcon,
   ChevronDownIcon,
+  LoaderCircleIcon,
   LogOutIcon,
   MailIcon,
   MessageCircleIcon,
+  Trash2Icon,
   UserRoundIcon,
 } from "lucide-react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { Link } from "react-router";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { toastManager } from "@/lib/toast";
+
+const MAX_AVATAR_SIZE = 10 * 1024 * 1024;
 
 function formatMemberSince(createdAt: Date | null | undefined) {
   if (!createdAt) {
@@ -28,9 +35,72 @@ function formatMemberSince(createdAt: Date | null | undefined) {
 export default function Profile() {
   const { signOut } = useClerk();
   const { user } = useUser();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [isAvatarUpdating, setIsAvatarUpdating] = useState(false);
   const username = user?.username ?? user?.fullName ?? "anton_dev";
   const email = user?.primaryEmailAddress?.emailAddress ?? "anton@example.com";
   const imageUrl = user?.imageUrl;
+
+  async function updateAvatar(file: File | null) {
+    if (!user) {
+      return;
+    }
+
+    setIsAvatarUpdating(true);
+
+    try {
+      await user.setProfileImage({ file });
+      await user.reload();
+
+      toastManager.add({
+        type: "success",
+        title: file ? "Аватар обновлён" : "Аватар удалён",
+        description: file
+          ? "Новое изображение уже отображается в профиле."
+          : "Вместо фотографии теперь используются инициалы.",
+      });
+    } catch (error) {
+      console.error("Не удалось обновить аватар", error);
+      toastManager.add({
+        type: "error",
+        title: "Не удалось обновить аватар",
+        description:
+          "Попробуйте выбрать другое изображение или повторить позже.",
+      });
+    } finally {
+      setIsAvatarUpdating(false);
+    }
+  }
+
+  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toastManager.add({
+        type: "error",
+        title: "Неверный формат файла",
+        description: "Выберите изображение в формате PNG, JPEG, WebP или GIF.",
+      });
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_SIZE) {
+      toastManager.add({
+        type: "error",
+        title: "Файл слишком большой",
+        description: "Максимальный размер изображения — 10 МБ.",
+      });
+      return;
+    }
+
+    await updateAvatar(file);
+  }
 
   return (
     <main className="h-dvh touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain bg-[#080c1c] text-white">
@@ -104,12 +174,52 @@ export default function Profile() {
               />
 
               <CardContent className="relative flex h-full flex-col items-start gap-6 px-5 py-7 sm:flex-row sm:items-center sm:px-8 sm:py-8 lg:gap-9 lg:px-10">
-                <Avatar className="size-32 bg-[linear-gradient(145deg,#7587ff,#312489)] ring-1 ring-white/15 sm:size-40 lg:size-44">
-                  <AvatarImage src={imageUrl} alt={`Аватар ${username}`} />
-                  <AvatarFallback className="bg-transparent text-4xl font-semibold text-white">
-                    {username.slice(0, 1).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="flex shrink-0 flex-col items-center gap-3">
+                  <Avatar className="size-32 bg-[linear-gradient(145deg,#7587ff,#312489)] ring-1 ring-white/15 sm:size-40 lg:size-44">
+                    <AvatarImage src={imageUrl} alt={`Аватар ${username}`} />
+                    <AvatarFallback className="bg-transparent text-4xl font-semibold text-white">
+                      {username.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    aria-label="Выбрать новый аватар"
+                    className="sr-only"
+                    disabled={isAvatarUpdating}
+                    onChange={(event) => void handleAvatarChange(event)}
+                  />
+
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!user || isAvatarUpdating}
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="bg-[#5f6ff1] text-white hover:bg-[#7180f8]"
+                    >
+                      {isAvatarUpdating ? (
+                        <LoaderCircleIcon className="animate-spin" />
+                      ) : (
+                        <CameraIcon />
+                      )}
+                      Выбрать фото
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={!user || !user.hasImage || isAvatarUpdating}
+                      onClick={() => void updateAvatar(null)}
+                      className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                    >
+                      <Trash2Icon />
+                      Удалить
+                    </Button>
+                  </div>
+                </div>
 
                 <div className="min-w-0 flex-1">
                   <h2 className="truncate text-2xl font-bold sm:text-3xl">
@@ -119,17 +229,6 @@ export default function Profile() {
                     {formatMemberSince(user?.createdAt)}
                   </p>
                 </div>
-
-                {/* Кнопка будет возвращена, когда появится редактирование профиля.
-                <Button
-                  type="button"
-                  size="lg"
-                  className="h-12 w-full gap-2 bg-[#5f6ff1] px-5 text-base font-semibold text-white shadow-lg shadow-[#4a55db]/20 hover:bg-[#6e7df7] sm:w-auto lg:self-end"
-                >
-                  <PencilIcon className="size-5" />
-                  Редактировать профиль
-                </Button>
-                */}
               </CardContent>
             </Card>
 
