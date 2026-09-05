@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { toastManager } from "@/lib/toast";
 
 import { ChatAvatar } from "./ChatAvatar";
+import { CreateChatDialog } from "./CreateChatDialog";
 
 type ChatSidebarProps = {
   activeChatId: string | null;
@@ -42,6 +43,7 @@ export function ChatSidebar({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const username = user?.username ?? user?.fullName ?? "Пользователь";
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export function ChatSidebar({
 
         setChats(loadedChats);
         onChatsLoaded(loadedChats);
+
       } catch (requestError: unknown) {
         if (controller.signal.aborted) {
           return;
@@ -99,6 +102,7 @@ export function ChatSidebar({
           type="button"
           size="icon-lg"
           aria-label="Создать чат"
+          onClick={() => setIsCreateDialogOpen(true)}
           className="size-11 bg-[#5f6ff1] text-white shadow-lg shadow-[#5362db]/20 hover:bg-[#7180f8]"
         >
           <SquarePenIcon className="size-5" />
@@ -213,6 +217,11 @@ export function ChatSidebar({
           </Card>
         </Link>
       </div>
+
+      <CreateChatDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </aside>
   );
 }
