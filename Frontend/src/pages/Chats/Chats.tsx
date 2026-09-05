@@ -57,6 +57,7 @@ export default function Chats() {
                 onBack={() => setIsMobileChatOpen(false)}
               />
               <ChatMessages
+                key={activeChat.chatId}
                 chatId={activeChat.chatId}
                 currentUsername={username}
               />

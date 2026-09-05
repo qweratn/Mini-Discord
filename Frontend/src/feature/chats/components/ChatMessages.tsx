@@ -1,40 +1,67 @@
-import { useEffect, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
-import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import {
-  formatMessageTime,
+  formatMessageDate,
   getRequestErrorMessage,
+  isSameMessageDay,
 } from "@/feature/chats/chat-formatters";
 import { getChatMessages } from "@/feature/chats/chats-api";
 import type { ChatMessage } from "@/feature/chats/chat-types";
-import { cn } from "@/lib/utils";
 
-import { ChatAvatar } from "./ChatAvatar";
+import { MessageBubble } from "./MessageBubble";
 
 type ChatMessagesProps = {
   chatId: string;
   currentUsername: string;
 };
 
+type PendingScrollAdjustment = {
+  scrollHeight: number;
+  scrollTop: number;
+};
+
 export function ChatMessages({
   chatId,
   currentUsername,
 }: ChatMessagesProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
+  const paginationControllerRef = useRef<AbortController | null>(null);
+  const paginationLockRef = useRef(false);
+  const initialScrollCompletedRef = useRef(false);
+  const pendingScrollAdjustmentRef =
+    useRef<PendingScrollAdjustment | null>(null);
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [nextBeforeMessageId, setNextBeforeMessageId] = useState<
+    string | null
+  >(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [initialError, setInitialError] = useState<string | null>(null);
+  const [paginationError, setPaginationError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadMessages() {
+    async function loadInitialMessages() {
       try {
-        setIsLoading(true);
-        setError(null);
+        setIsInitialLoading(true);
+        setInitialError(null);
+        setPaginationError(null);
+        initialScrollCompletedRef.current = false;
 
         const page = await getChatMessages(
           chatId,
@@ -42,43 +69,176 @@ export function ChatMessages({
           controller.signal,
         );
 
-        // API возвращает новые сообщения первыми, для чата нужен прямой порядок.
         setMessages([...page.items].reverse());
+        setNextBeforeMessageId(page.nextBeforeMessageId);
+        setHasMore(page.hasMore);
       } catch (requestError: unknown) {
         if (!controller.signal.aborted) {
-          setError(getRequestErrorMessage(requestError));
+          setInitialError(getRequestErrorMessage(requestError));
         }
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false);
+          setIsInitialLoading(false);
         }
       }
     }
 
-    void loadMessages();
+    void loadInitialMessages();
 
     return () => controller.abort();
   }, [chatId, reloadKey]);
 
-  return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-7 lg:px-10">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="flex items-center gap-4">
-          <Separator className="flex-1 bg-[#28304c]" />
-          <span className="text-xs font-medium text-[#7f859c]">Сообщения</span>
-          <Separator className="flex-1 bg-[#28304c]" />
-        </div>
+  useEffect(() => {
+    return () => paginationControllerRef.current?.abort();
+  }, []);
 
-        {isLoading && (
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const pendingAdjustment = pendingScrollAdjustmentRef.current;
+
+    if (pendingAdjustment) {
+      container.scrollTop =
+        container.scrollHeight -
+        pendingAdjustment.scrollHeight +
+        pendingAdjustment.scrollTop;
+      pendingScrollAdjustmentRef.current = null;
+      return;
+    }
+
+    if (
+      !isInitialLoading &&
+      !initialError &&
+      !initialScrollCompletedRef.current
+    ) {
+      container.scrollTop = container.scrollHeight;
+      initialScrollCompletedRef.current = true;
+    }
+  }, [initialError, isInitialLoading, messages]);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (
+      !hasMore ||
+      !nextBeforeMessageId ||
+      paginationLockRef.current ||
+      !initialScrollCompletedRef.current
+    ) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    const controller = new AbortController();
+
+    paginationControllerRef.current = controller;
+    paginationLockRef.current = true;
+    setIsLoadingMore(true);
+    setPaginationError(null);
+
+    if (container) {
+      pendingScrollAdjustmentRef.current = {
+        scrollHeight: container.scrollHeight,
+        scrollTop: container.scrollTop,
+      };
+    }
+
+    try {
+      const page = await getChatMessages(
+        chatId,
+        nextBeforeMessageId,
+        controller.signal,
+      );
+      const olderMessages = [...page.items].reverse();
+
+      setMessages((currentMessages) => [
+        ...olderMessages,
+        ...currentMessages,
+      ]);
+      setNextBeforeMessageId(page.nextBeforeMessageId);
+      setHasMore(page.hasMore);
+    } catch (requestError: unknown) {
+      pendingScrollAdjustmentRef.current = null;
+
+      if (!controller.signal.aborted) {
+        setPaginationError(getRequestErrorMessage(requestError));
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsLoadingMore(false);
+      }
+
+      paginationLockRef.current = false;
+    }
+  }, [chatId, hasMore, nextBeforeMessageId]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    const trigger = loadMoreTriggerRef.current;
+
+    if (!container || !trigger || isInitialLoading || initialError) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          void loadOlderMessages();
+        }
+      },
+      {
+        root: container,
+        rootMargin: "200px 0px 0px",
+      },
+    );
+
+    observer.observe(trigger);
+
+    return () => observer.disconnect();
+  }, [initialError, isInitialLoading, loadOlderMessages]);
+
+  return (
+    <div
+      ref={scrollContainerRef}
+      className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-7 lg:px-10"
+    >
+      <div className="mx-auto w-full max-w-3xl">
+        <div ref={loadMoreTriggerRef} className="h-px" aria-hidden="true" />
+
+        {isLoadingMore && (
+          <div className="flex items-center justify-center gap-2 py-4 text-sm text-[#8f96ae]">
+            <Spinner />
+            Загружаем предыдущие сообщения...
+          </div>
+        )}
+
+        {!isLoadingMore && paginationError && (
+          <div className="py-4 text-center">
+            <p className="text-sm text-red-300">{paginationError}</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="mt-3 border-[#44518c] bg-transparent text-[#a8b1ff]"
+              onClick={() => void loadOlderMessages()}
+            >
+              Повторить загрузку
+            </Button>
+          </div>
+        )}
+
+        {isInitialLoading && (
           <div className="flex items-center justify-center gap-2 py-16 text-sm text-[#8f96ae]">
             <Spinner />
             Загружаем сообщения...
           </div>
         )}
 
-        {!isLoading && error && (
+        {!isInitialLoading && initialError && (
           <div className="py-16 text-center">
-            <p className="text-sm text-red-300">{error}</p>
+            <p className="text-sm text-red-300">{initialError}</p>
             <Button
               type="button"
               size="sm"
@@ -91,70 +251,42 @@ export function ChatMessages({
           </div>
         )}
 
-        {!isLoading && !error && messages.length === 0 && (
+        {!isInitialLoading && !initialError && messages.length === 0 && (
           <p className="py-16 text-center text-sm text-[#8f96ae]">
             В этом чате пока нет сообщений
           </p>
         )}
 
-        {!isLoading && !error && messages.length > 0 && (
-          <div className="mt-8 space-y-6">
-            {messages.map((message) => {
-              const isCurrentUser =
-                message.author.username === currentUsername;
+        {!isInitialLoading && !initialError && messages.length > 0 && (
+          <div className="space-y-6 pb-2">
+            {messages.map((message, index) => {
+              const previousMessage = messages[index - 1];
+              const startsNewDay =
+                !previousMessage ||
+                !isSameMessageDay(previousMessage.sentAt, message.sentAt);
 
               return (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex items-end gap-3 sm:gap-4",
-                    isCurrentUser && "flex-row-reverse",
-                  )}
-                >
-                  <ChatAvatar
-                    name={message.author.username}
-                    imageUrl={message.author.imageUrl}
-                    className="size-9 sm:size-10"
-                  />
-
-                  <div
-                    className={cn(
-                      "flex min-w-0 flex-1 flex-col",
-                      isCurrentUser ? "items-end" : "items-start",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "flex flex-wrap items-baseline gap-x-2 gap-y-1 px-1",
-                        isCurrentUser && "flex-row-reverse",
-                      )}
-                    >
-                      <p className="text-sm font-semibold text-[#f1f2f7]">
-                        {message.author.username}
-                      </p>
-                      <time className="text-xs text-[#737a93]">
-                        {formatMessageTime(message.sentAt)}
-                      </time>
-                    </div>
-
-                    <Bubble
-                      align={isCurrentUser ? "end" : "start"}
-                      variant={isCurrentUser ? "default" : "secondary"}
-                      className="mt-1.5 max-w-[85%] sm:max-w-[75%]"
-                    >
-                      <BubbleContent
-                        className={cn(
-                          "rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-md shadow-black/10 sm:text-base",
-                          isCurrentUser
-                            ? "rounded-br-md border-[#8490ff]/25 bg-[#5f6ff1]! text-white!"
-                            : "rounded-bl-md border-[#303a5a] bg-[#18213b]! text-[#dfe2ec]!",
-                        )}
+                <Fragment key={message.id}>
+                  {startsNewDay && (
+                    <div className="flex items-center gap-4 pt-2">
+                      <Separator className="flex-1 bg-[#28304c]" />
+                      <time
+                        dateTime={message.sentAt}
+                        className="text-xs font-medium text-[#7f859c]"
                       >
-                        {message.content}
-                      </BubbleContent>
-                    </Bubble>
-                  </div>
-                </div>
+                        {formatMessageDate(message.sentAt)}
+                      </time>
+                      <Separator className="flex-1 bg-[#28304c]" />
+                    </div>
+                  )}
+
+                  <MessageBubble
+                    message={message}
+                    isCurrentUser={
+                      message.author.username === currentUsername
+                    }
+                  />
+                </Fragment>
               );
             })}
           </div>

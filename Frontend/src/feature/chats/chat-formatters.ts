@@ -9,6 +9,18 @@ export function formatMessageTime(value: string | null): string {
   }).format(new Date(value));
 }
 
+export function formatMessageDate(value: string): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+export function isSameMessageDay(first: string, second: string): boolean {
+  return new Date(first).toDateString() === new Date(second).toDateString();
+}
+
 export function getInitials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase();
 }
