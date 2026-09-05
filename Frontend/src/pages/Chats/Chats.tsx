@@ -51,18 +51,20 @@ export default function Chats() {
           )}
         >
           {activeChat ? (
-            <>
+            <div
+              key={activeChat.chatId}
+              className="chat-workspace-enter flex min-h-0 flex-1 flex-col"
+            >
               <ChatHeader
                 chat={activeChat}
                 onBack={() => setIsMobileChatOpen(false)}
               />
               <ChatMessages
-                key={activeChat.chatId}
                 chatId={activeChat.chatId}
                 currentUsername={username}
               />
               <ChatComposer chatName={activeChat.name} />
-            </>
+            </div>
           ) : (
             <div className="flex h-full items-center justify-center px-4 text-center">
               <div>
@@ -76,7 +78,7 @@ export default function Chats() {
         </section>
 
         {activeChat?.chatType === "server" && (
-          <ChatMembers chatId={activeChat.chatId} />
+          <ChatMembers key={activeChat.chatId} chatId={activeChat.chatId} />
         )}
       </div>
     </main>

@@ -8,16 +8,19 @@ import { ChatAvatar } from "./ChatAvatar";
 type MessageBubbleProps = {
   message: ChatMessage;
   isCurrentUser: boolean;
+  animationDelay?: number;
 };
 
 export function MessageBubble({
   message,
   isCurrentUser,
+  animationDelay = 0,
 }: MessageBubbleProps) {
   return (
     <div
+      style={{ animationDelay: `${animationDelay}ms` }}
       className={cn(
-        "flex items-end gap-3 sm:gap-4",
+        "message-enter flex items-end gap-3 sm:gap-4",
         isCurrentUser && "flex-row-reverse",
       )}
     >

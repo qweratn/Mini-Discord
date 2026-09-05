@@ -159,6 +159,58 @@
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+::view-transition-group(app-logo),
+::view-transition-group(profile-avatar) {
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(app-logo),
+::view-transition-new(app-logo),
+::view-transition-old(profile-avatar),
+::view-transition-new(profile-avatar) {
+  mix-blend-mode: normal;
+}
+
+.app-logo-transition {
+  view-transition-name: app-logo;
+}
+
+.app-profile-avatar {
+  view-transition-name: profile-avatar;
+}
+
+.chat-workspace-enter {
+  animation: chat-workspace-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: 50% 50%;
+}
+
+.chat-members-enter {
+  animation: chat-members-enter 460ms 40ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.profile-content-enter {
+  animation: profile-content-enter 520ms 60ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.chat-list-item {
+  animation: chat-list-item-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition-property: color, background-color, border-color, box-shadow, transform;
+  transition-duration: 180ms;
+}
+
+.chat-list-item:hover {
+  transform: translateX(3px);
+}
+
+.chat-member-enter {
+  animation: chat-member-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.message-enter {
+  animation: message-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .auth-enter-left {
   animation: auth-enter-left 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -234,18 +286,137 @@
   50% { opacity: 1; transform: scale(1.08); }
 }
 
+@keyframes chat-workspace-enter {
+  from {
+    opacity: 0;
+    transform: translateX(18px) scale(0.992);
+    filter: blur(3px);
+  }
+}
+
+@keyframes chat-members-enter {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+
+@keyframes profile-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.995);
+    filter: blur(2px);
+  }
+}
+
+@keyframes chat-list-item-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+@keyframes chat-member-enter {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+@keyframes message-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+
+@media (max-height: 700px) and (min-width: 640px) {
+  .profile-sidebar {
+    padding-block: 0.75rem;
+  }
+
+  .profile-navigation {
+    margin-top: 0.75rem;
+  }
+
+  .profile-sidebar-account,
+  .profile-page-subtitle,
+  .profile-member-since {
+    display: none;
+  }
+
+  .profile-main {
+    padding-block: 0.625rem;
+  }
+
+  .profile-page-heading h1 {
+    font-size: 1.5rem;
+  }
+
+  .profile-hero-card,
+  .profile-details-card {
+    margin-top: 0.625rem;
+  }
+
+  .profile-hero-card [data-slot="card-content"] {
+    padding-block: 0.75rem;
+  }
+
+  .profile-hero-avatar {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .profile-avatar-actions {
+    margin-top: 0.5rem;
+  }
+
+  .profile-details-header {
+    padding-top: 0.75rem;
+  }
+
+  .profile-details-row {
+    padding-block: 0.375rem;
+  }
+
+  .profile-details-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .profile-details-footer {
+    padding-block: 0.5rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
   ::view-transition-new(root),
   ::view-transition-group(auth-card),
   ::view-transition-group(mascot),
+  ::view-transition-group(app-logo),
+  ::view-transition-group(profile-avatar),
   .auth-enter-left,
   .auth-enter-right,
   .auth-form > *,
   .auth-mascot-float,
-  .auth-glow {
+  .auth-glow,
+  .chat-workspace-enter,
+  .chat-members-enter,
+  .profile-content-enter,
+  .chat-list-item,
+  .chat-member-enter,
+  .message-enter {
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  .chat-list-item {
+    transition: none !important;
+  }
+
+  .chat-list-item:hover {
+    transform: none;
   }
 }

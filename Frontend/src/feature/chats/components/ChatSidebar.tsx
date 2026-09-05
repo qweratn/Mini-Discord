@@ -90,7 +90,7 @@ export function ChatSidebar({
     >
       <div className="flex items-center justify-between px-5 pt-6 pb-5">
         <div>
-          <p className="text-xs font-medium tracking-[0.18em] text-[#707791] uppercase">
+          <p className="app-logo-transition text-xs font-medium tracking-[0.18em] text-[#707791] uppercase">
             Mini Discord
           </p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">Сообщения</h1>
@@ -156,14 +156,15 @@ export function ChatSidebar({
 
         {!isLoading && !error && chats.length > 0 && (
           <div className="mt-3 space-y-1.5">
-            {chats.map((chat) => (
+            {chats.map((chat, index) => (
               <Button
                 key={chat.chatId}
                 type="button"
                 variant="ghost"
                 onClick={() => onChatSelect(chat)}
+                style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
                 className={cn(
-                  "h-auto w-full justify-start gap-3 rounded-xl px-3 py-3 text-left text-white hover:bg-white/5 hover:text-white",
+                  "chat-list-item h-auto w-full justify-start gap-3 rounded-xl px-3 py-3 text-left text-white hover:bg-white/5 hover:text-white",
                   chat.chatId === activeChatId &&
                     "border border-[#384372] bg-[#222a4d] shadow-md shadow-black/10 hover:bg-[#273057]",
                 )}
@@ -199,7 +200,7 @@ export function ChatSidebar({
               <ChatAvatar
                 name={username}
                 imageUrl={user?.imageUrl}
-                className="size-10"
+                className="app-profile-avatar size-10"
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{username}</p>

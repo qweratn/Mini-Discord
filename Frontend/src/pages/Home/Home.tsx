@@ -30,8 +30,8 @@ export default function Home() {
   ];
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-[#0a0e20]">
-      <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+    <main className="h-dvh touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain bg-[#0a0e20] md:h-auto md:min-h-dvh md:overflow-y-visible">
+      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-start px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-10 md:min-h-dvh md:justify-center lg:px-8 lg:py-12">
         <section className="grid items-center gap-8 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-12">
           <div className="flex flex-col items-start">
             <h1 className="text-4xl font-bold leading-[0.98] tracking-tight text-white sm:text-5xl lg:text-6xl">

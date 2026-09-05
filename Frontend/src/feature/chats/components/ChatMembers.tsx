@@ -51,7 +51,7 @@ export function ChatMembers({ chatId }: ChatMembersProps) {
   }, [chatId, reloadKey]);
 
   return (
-    <aside className="hidden h-full w-64 shrink-0 flex-col border-l border-[#29304e] bg-[#0e1428] xl:flex">
+    <aside className="chat-members-enter hidden h-full w-64 shrink-0 flex-col border-l border-[#29304e] bg-[#0e1428] xl:flex">
       <div className="px-5 pt-7 pb-5">
         <div className="flex items-center gap-2">
           <UsersRoundIcon className="size-5 text-[#7f8cff]" />
@@ -93,12 +93,13 @@ export function ChatMembers({ chatId }: ChatMembersProps) {
 
       {!isLoading && !error && members.length > 0 && (
         <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {members.map((member) => (
+          {members.map((member, index) => (
             <Button
               key={member.id}
               type="button"
               variant="ghost"
-              className="h-auto w-full justify-start gap-3 px-2.5 py-2 text-[#c7cad7] hover:bg-white/5 hover:text-white"
+              style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
+              className="chat-member-enter h-auto w-full justify-start gap-3 px-2.5 py-2 text-[#c7cad7] hover:bg-white/5 hover:text-white"
             >
               <ChatAvatar
                 name={member.name}

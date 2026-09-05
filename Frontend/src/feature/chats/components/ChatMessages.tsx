@@ -282,6 +282,7 @@ export function ChatMessages({
 
                   <MessageBubble
                     message={message}
+                    animationDelay={Math.min(index, 10) * 25}
                     isCurrentUser={
                       message.author.username === currentUsername
                     }
