@@ -114,8 +114,8 @@ export default function Profile() {
 
   return (
     <main className="h-dvh overflow-hidden bg-[#080c1c] text-white">
-      <div className="mx-auto flex h-full min-h-0 w-full max-w-[1600px] flex-col sm:flex-row">
-        <aside className="profile-sidebar flex w-full shrink-0 items-center border-b border-[#282e4a] bg-[#101529] px-3 py-3 sm:h-full sm:w-64 sm:flex-col sm:items-stretch sm:border-r sm:border-b-0 sm:px-3 sm:py-5 lg:w-72 lg:px-5">
+      <div className="flex h-full min-h-0 w-full flex-col sm:flex-row">
+        <aside className="profile-sidebar flex w-full shrink-0 items-center border-b border-[#282e4a] bg-[#101529] px-3 py-3 sm:h-full sm:w-64 sm:flex-col sm:items-stretch sm:border-r sm:border-b-0 sm:px-3 sm:py-5 lg:w-72 lg:px-5 2xl:w-80 2xl:px-6">
           <Link
             to="/chats"
             viewTransition
@@ -169,7 +169,7 @@ export default function Profile() {
         </aside>
 
         <section className="profile-content-enter profile-main min-h-0 min-w-0 flex-1 overflow-hidden px-4 py-3 sm:px-6 sm:py-5 lg:px-8 lg:py-6 xl:px-12">
-          <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col">
+          <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col 2xl:max-w-6xl">
             <header className="profile-page-heading shrink-0">
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
                 Мой профиль
@@ -190,7 +190,7 @@ export default function Profile() {
               />
 
               <CardContent className="relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-5 lg:gap-8 lg:px-8">
-                <Avatar className="profile-hero-avatar size-20 bg-[linear-gradient(145deg,#7587ff,#312489)] ring-1 ring-white/15 sm:size-28 lg:size-32">
+                <Avatar className="profile-hero-avatar size-20 bg-[linear-gradient(145deg,#7587ff,#312489)] ring-1 ring-white/15 sm:size-28 lg:size-32 2xl:size-36">
                     <AvatarImage src={imageUrl} alt={`Аватар ${username}`} />
                     <AvatarFallback className="bg-transparent text-2xl font-semibold text-white sm:text-3xl">
                       {username.slice(0, 1).toUpperCase()}

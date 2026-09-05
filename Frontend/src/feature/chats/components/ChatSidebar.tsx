@@ -84,7 +84,7 @@ export function ChatSidebar({
   return (
     <aside
       className={cn(
-        "h-full w-full shrink-0 flex-col bg-[#0e1428] lg:flex lg:w-80 lg:border-r lg:border-[#29304e]",
+        "h-full w-full shrink-0 flex-col bg-[#0e1428] lg:flex lg:w-80 lg:border-r lg:border-[#29304e] 2xl:w-88",
         isMobileChatOpen ? "hidden" : "flex",
       )}
     >

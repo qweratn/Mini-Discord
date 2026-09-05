@@ -51,7 +51,7 @@ export function ChatMembers({ chatId }: ChatMembersProps) {
   }, [chatId, reloadKey]);
 
   return (
-    <aside className="chat-members-enter hidden h-full w-64 shrink-0 flex-col border-l border-[#29304e] bg-[#0e1428] xl:flex">
+    <aside className="chat-members-enter hidden h-full w-64 shrink-0 flex-col border-l border-[#29304e] bg-[#0e1428] xl:flex 2xl:w-72">
       <div className="px-5 pt-7 pb-5">
         <div className="flex items-center gap-2">
           <UsersRoundIcon className="size-5 text-[#7f8cff]" />

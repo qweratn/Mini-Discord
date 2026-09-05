@@ -36,7 +36,7 @@ export default function Chats() {
 
   return (
     <main className="h-dvh overflow-hidden bg-[#080c1c] text-white">
-      <div className="mx-auto flex h-full min-h-0 w-full max-w-[1700px]">
+      <div className="flex h-full min-h-0 w-full">
         <ChatSidebar
           activeChatId={activeChat?.chatId ?? null}
           isMobileChatOpen={isMobileChatOpen}

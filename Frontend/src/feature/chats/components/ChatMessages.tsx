@@ -204,7 +204,7 @@ export function ChatMessages({
       ref={scrollContainerRef}
       className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-7 lg:px-10"
     >
-      <div className="mx-auto w-full max-w-3xl">
+      <div className="mx-auto w-full max-w-3xl 2xl:max-w-5xl">
         <div ref={loadMoreTriggerRef} className="h-px" aria-hidden="true" />
 
         {isLoadingMore && (

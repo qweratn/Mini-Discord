@@ -11,7 +11,7 @@ type ChatComposerProps = {
 export function ChatComposer({ chatName }: ChatComposerProps) {
   return (
     <div className="border-t border-[#202844] px-4 py-4 sm:px-6 lg:px-8">
-      <Card className="mx-auto max-w-4xl border-[#354064] bg-[#121a31] py-0 text-white shadow-lg shadow-black/10">
+      <Card className="mx-auto max-w-4xl border-[#354064] bg-[#121a31] py-0 text-white shadow-lg shadow-black/10 2xl:max-w-6xl">
         <CardContent className="flex items-center gap-3 p-2 pl-4">
           <Input
             aria-label="Сообщение"
