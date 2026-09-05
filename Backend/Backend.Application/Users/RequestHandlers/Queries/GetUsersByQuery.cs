@@ -10,13 +10,13 @@ namespace Backend.Application.Users.RequestHandlers.Queries;
 /// </summary>
 public class GetUsersByQuery
 {
-    public record Query(string ClerkId, string Filter) : IRequest<IEnumerable<UpsertAppUser>>;
+    public record Query(string ClerkId, string Filter) : IRequest<IEnumerable<SearchAppUser>>;
 
     public class Handler(
         IUsersRepository usersRepository)
-        : IRequestHandler<Query, IEnumerable<UpsertAppUser>>
+        : IRequestHandler<Query, IEnumerable<SearchAppUser>>
     {
-        public async Task<IEnumerable<UpsertAppUser>> Handle(
+        public async Task<IEnumerable<SearchAppUser>> Handle(
             Query request,
             CancellationToken cancellationToken)
         {
@@ -26,7 +26,7 @@ public class GetUsersByQuery
                 await usersRepository.GetUsersByQueryAsync(clerkId, filter, cancellationToken);
 
             return users.Select(x =>
-                new UpsertAppUser(x.ClerkId, x.Username, x.Email, x.ImageUrl));
+                new SearchAppUser(x.Id, x.Username, x.Email, x.ImageUrl));
         }
     }
 }
