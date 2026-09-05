@@ -15,5 +15,10 @@ public interface IUsersRepository
         IEnumerable<Guid> userIds,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<AppUser>> GetUsersByQueryAsync(
+        string clerkId,
+        string query,
+        CancellationToken cancellationToken);
+
     void AddUser(AppUser user);
 }

@@ -54,6 +54,28 @@ public class UsersRepository : IUsersRepository
     }
 
     /// <summary>
+    /// Find all users by email or name.
+    /// </summary>
+    public async Task<IReadOnlyList<AppUser>> GetUsersByQueryAsync(
+        string clerkId,
+        string query,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            return [];
+        }
+
+        string queryToLower = query.ToLower();
+
+        return await context.Users
+            .Where(x => x.ClerkId != clerkId &&
+                (x.Username.ToLower().Contains(queryToLower) || x.Email.ToLower().Contains(queryToLower)))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Add user to Database.
     /// </summary>
     public void AddUser(AppUser user)
