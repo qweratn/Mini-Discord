@@ -7,6 +7,14 @@ export type Chat = {
   lastMessageAt: string | null;
 };
 
+export type CreatedChat = {
+  id: string;
+  name: string | null;
+  chatType: "server" | "direct";
+  ownerId: string | null;
+  createdAt: string;
+};
+
 export type ChatMember = {
   id: string;
   name: string;

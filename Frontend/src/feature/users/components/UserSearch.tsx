@@ -4,14 +4,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import type { SearchableUser } from "@/feature/users/user-types";
 import { cn } from "@/lib/utils";
 
-export type SearchableUser = {
-  id: string;
-  username: string;
-  email: string;
-  imageUrl?: string | null;
-};
+export type { SearchableUser } from "@/feature/users/user-types";
 
 type UserSearchProps = {
   users: SearchableUser[];
@@ -23,6 +19,8 @@ type UserSearchProps = {
   placeholder?: string;
   selectionMode?: "single" | "multiple";
   isLoading?: boolean;
+  error?: string | null;
+  disabled?: boolean;
   minQueryLength?: number;
   className?: string;
 };
@@ -41,14 +39,13 @@ export function UserSearch({
   placeholder = "Имя пользователя или email",
   selectionMode = "single",
   isLoading = false,
+  error = null,
+  disabled = false,
   minQueryLength = 2,
   className,
 }: UserSearchProps) {
   const normalizedQuery = query.trim().toLocaleLowerCase("ru");
-  const visibleUsers = normalizedQuery.length < minQueryLength ? [] : users.filter(
-    (user) => user.username.toLocaleLowerCase("ru").includes(normalizedQuery)
-      || user.email.toLocaleLowerCase("ru").includes(normalizedQuery),
-  );
+  const visibleUsers = normalizedQuery.length < minQueryLength ? [] : users;
 
   return (
     <div className={className}>
@@ -62,6 +59,7 @@ export function UserSearch({
           type="search"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
+          disabled={disabled}
           placeholder={placeholder}
           autoComplete="off"
           className="h-12 border-[#303a5b] bg-[#0c1328] pr-10 pl-10 text-white placeholder:text-[#666f89] focus-visible:border-[#6475ed] focus-visible:ring-[#6475ed]/20"
@@ -80,13 +78,19 @@ export function UserSearch({
           </div>
         )}
 
-        {!isLoading && normalizedQuery.length >= minQueryLength && visibleUsers.length === 0 && (
+        {!isLoading && normalizedQuery.length >= minQueryLength && error && (
+          <div className="user-search-empty flex h-48 items-center justify-center rounded-xl border border-dashed border-red-400/30 bg-red-400/5 px-6 text-center text-sm text-red-300">
+            {error}
+          </div>
+        )}
+
+        {!isLoading && !error && normalizedQuery.length >= minQueryLength && visibleUsers.length === 0 && (
           <div className="user-search-empty flex h-48 items-center justify-center rounded-xl border border-dashed border-[#303957] px-6 text-center text-sm text-[#858da7]">
             Никого не нашли. Проверьте имя или email.
           </div>
         )}
 
-        {visibleUsers.length > 0 && (
+        {!error && visibleUsers.length > 0 && (
           <div className="space-y-1" role="listbox" aria-multiselectable={selectionMode === "multiple"}>
             {visibleUsers.map((user, index) => {
               const selected = selectedUserIds.includes(user.id);
@@ -97,6 +101,7 @@ export function UserSearch({
                   variant="ghost"
                   role="option"
                   aria-selected={selected}
+                  disabled={disabled}
                   onClick={() => onUserToggle?.(user)}
                   style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
                   className={cn(

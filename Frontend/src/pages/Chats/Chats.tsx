@@ -29,10 +29,10 @@ export default function Chats() {
     });
   }, []);
 
-  function handleChatSelect(chat: Chat) {
+  const handleChatSelect = useCallback((chat: Chat) => {
     setActiveChat(chat);
     setIsMobileChatOpen(true);
-  }
+  }, []);
 
   return (
     <main className="h-dvh overflow-hidden bg-[#080c1c] text-white">

@@ -1,13 +1,15 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { MessageCircleIcon, UserRoundIcon, UsersRoundIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  UserSearch,
-  type SearchableUser,
-} from "@/feature/users/components/UserSearch";
+import { Spinner } from "@/components/ui/spinner";
+import { createDirectChat } from "@/feature/chats/chats-api";
+import { UserSearch } from "@/feature/users/components/UserSearch";
+import { searchUsers } from "@/feature/users/user-api";
+import type { SearchableUser } from "@/feature/users/user-types";
+import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 type ChatMode = "direct" | "group";
@@ -15,45 +17,63 @@ type ChatMode = "direct" | "group";
 type CreateChatDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  users?: SearchableUser[];
-  onSubmit?: (value: {
-    mode: ChatMode;
-    name?: string;
-    users: SearchableUser[];
-  }) => void;
+  onDirectChatCreated?: (chatId: string) => void;
 };
-
-// Preview data only. Pass `users` from the caller when a data source is ready.
-const previewUsers: SearchableUser[] = [
-  { id: "1", username: "Алина Воронова", email: "alina@example.com" },
-  { id: "2", username: "Максим Орлов", email: "maxim@example.com" },
-  { id: "3", username: "София Белова", email: "sofia@example.com" },
-  { id: "4", username: "Илья Лебедев", email: "ilya@example.com" },
-];
 
 export function CreateChatDialog({
   open,
   onOpenChange,
-  users = previewUsers,
-  onSubmit,
+  onDirectChatCreated,
 }: CreateChatDialogProps) {
   const [mode, setMode] = useState<ChatMode>("direct");
   const [query, setQuery] = useState("");
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<SearchableUser[]>([]);
+  const [users, setUsers] = useState<SearchableUser[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const selectedIds = selectedUsers.map((user) => user.id);
-  const canSubmit = mode === "direct"
-    ? selectedUsers.length === 1
-    : groupName.trim().length >= 2 && selectedUsers.length > 0;
+  const canSubmit = mode === "direct" && selectedUsers.length === 1 && !isCreating;
+
+  useEffect(() => {
+    const normalizedQuery = query.trim();
+
+    if (!open || normalizedQuery.length < 2) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        setSearchError(null);
+        setUsers(await searchUsers(normalizedQuery, controller.signal));
+      } catch (error: unknown) {
+        if (controller.signal.aborted) return;
+        setUsers([]);
+        setSearchError(error instanceof Error ? error.message : "Не удалось найти пользователей");
+      } finally {
+        if (!controller.signal.aborted) setIsSearching(false);
+      }
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [open, query]);
 
   function reset() {
     setMode("direct");
     setQuery("");
     setGroupName("");
     setSelectedUsers([]);
+    setUsers([]);
+    setSearchError(null);
   }
 
   function setOpen(nextOpen: boolean) {
+    if (isCreating && !nextOpen) return;
     if (!nextOpen) reset();
     onOpenChange(nextOpen);
   }
@@ -63,6 +83,19 @@ export function CreateChatDialog({
     if (nextMode === "direct") {
       setSelectedUsers((current) => current.slice(0, 1));
     }
+  }
+
+  function changeQuery(nextQuery: string) {
+    setQuery(nextQuery);
+    setSearchError(null);
+
+    if (nextQuery.trim().length < 2) {
+      setUsers([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
   }
 
   function toggleUser(user: SearchableUser) {
@@ -78,14 +111,30 @@ export function CreateChatDialog({
     );
   }
 
-  function submit() {
+  async function submit() {
     if (!canSubmit) return;
-    onSubmit?.({
-      mode,
-      name: mode === "group" ? groupName.trim() : undefined,
-      users: selectedUsers,
-    });
-    setOpen(false);
+
+    try {
+      setIsCreating(true);
+      const chat = await createDirectChat(selectedUsers[0].id);
+
+      toastManager.add({
+        type: "success",
+        title: "Личный чат создан",
+        description: `Теперь вы можете написать пользователю ${selectedUsers[0].username}.`,
+      });
+      onDirectChatCreated?.(chat.id);
+      reset();
+      onOpenChange(false);
+    } catch (error: unknown) {
+      toastManager.add({
+        type: "error",
+        title: "Не удалось создать чат",
+        description: error instanceof Error ? error.message : "Попробуйте ещё раз",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   return (
@@ -119,7 +168,7 @@ export function CreateChatDialog({
                   <Button key={value} variant="ghost" onClick={() => selectMode(value)} className={cn(
                     "relative z-10 h-10 gap-2 text-[#8f97b1] hover:bg-transparent hover:text-white",
                     mode === value && "text-white",
-                  )}>
+                  )} disabled={isCreating}>
                     <Icon className="size-4" />{label}
                   </Button>
                 ))}
@@ -128,7 +177,7 @@ export function CreateChatDialog({
               {mode === "group" && (
                 <label className="chat-mode-section mt-5 block">
                   <span className="mb-2 block text-xs font-semibold tracking-wide text-[#9da5bd] uppercase">Название группы</span>
-                  <Input value={groupName} onChange={(event) => setGroupName(event.target.value)} maxLength={64} placeholder="Например, Команда продукта" className="h-11 border-[#303a5b] bg-[#0c1328] text-white placeholder:text-[#666f89] focus-visible:border-[#6475ed]" />
+                  <Input value={groupName} onChange={(event) => setGroupName(event.target.value)} maxLength={64} placeholder="Например, Команда продукта" disabled={isCreating} className="h-11 border-[#303a5b] bg-[#0c1328] text-white placeholder:text-[#666f89] focus-visible:border-[#6475ed]" />
                   <span className="mt-1.5 block text-right text-xs text-[#646d87]">{groupName.length}/64</span>
                 </label>
               )}
@@ -147,11 +196,14 @@ export function CreateChatDialog({
                 className="mt-5"
                 users={users}
                 query={query}
-                onQueryChange={setQuery}
+                onQueryChange={changeQuery}
                 selectedUserIds={selectedIds}
                 onUserToggle={toggleUser}
                 selectionMode={mode === "direct" ? "single" : "multiple"}
                 label={mode === "direct" ? "Найти собеседника" : "Добавить участников"}
+                isLoading={isSearching}
+                error={searchError}
+                disabled={isCreating}
               />
             </div>
 
@@ -161,9 +213,9 @@ export function CreateChatDialog({
                   ? selectedUsers[0]?.username ?? "Выберите одного человека"
                   : selectedUsers.length ? `${selectedUsers.length + 1} участников вместе с вами` : "Добавьте хотя бы одного участника"}
               </p>
-              <Button disabled={!canSubmit} onClick={submit} className="ml-auto h-11 min-w-40 bg-[#6475ed] px-5 text-white shadow-lg shadow-[#5362db]/20 transition-all hover:-translate-y-0.5 hover:bg-[#7584f5] hover:shadow-xl">
-                {mode === "direct" ? <MessageCircleIcon /> : <UsersRoundIcon />}
-                {mode === "direct" ? "Начать чат" : `Создать группу${selectedUsers.length ? ` · ${selectedUsers.length}` : ""}`}
+              <Button disabled={!canSubmit} onClick={() => void submit()} className="ml-auto h-11 min-w-40 bg-[#6475ed] px-5 text-white shadow-lg shadow-[#5362db]/20 transition-all hover:-translate-y-0.5 hover:bg-[#7584f5] hover:shadow-xl">
+                {isCreating ? <Spinner /> : mode === "direct" ? <MessageCircleIcon /> : <UsersRoundIcon />}
+                {isCreating ? "Создаём..." : mode === "direct" ? "Начать чат" : "Группы скоро"}
               </Button>
             </footer>
           </Dialog.Popup>

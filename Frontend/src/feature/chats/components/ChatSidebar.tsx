@@ -5,7 +5,7 @@ import {
   SquarePenIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ export function ChatSidebar({
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const pendingChatId = useRef<string | null>(null);
   const username = user?.username ?? user?.fullName ?? "Пользователь";
 
   useEffect(() => {
@@ -59,6 +60,16 @@ export function ChatSidebar({
         setChats(loadedChats);
         onChatsLoaded(loadedChats);
 
+        if (pendingChatId.current) {
+          const createdChat = loadedChats.find(
+            (chat) => chat.chatId === pendingChatId.current,
+          );
+
+          if (createdChat) {
+            pendingChatId.current = null;
+            onChatSelect(createdChat);
+          }
+        }
       } catch (requestError: unknown) {
         if (controller.signal.aborted) {
           return;
@@ -82,7 +93,12 @@ export function ChatSidebar({
     void loadChats();
 
     return () => controller.abort();
-  }, [onChatsLoaded, reloadKey]);
+  }, [onChatSelect, onChatsLoaded, reloadKey]);
+
+  function handleDirectChatCreated(chatId: string) {
+    pendingChatId.current = chatId;
+    setReloadKey((current) => current + 1);
+  }
 
   return (
     <aside
@@ -221,6 +237,7 @@ export function ChatSidebar({
       <CreateChatDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+        onDirectChatCreated={handleDirectChatCreated}
       />
     </aside>
   );

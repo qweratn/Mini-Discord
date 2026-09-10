@@ -1,5 +1,6 @@
 import type {
   Chat,
+  CreatedChat,
   ChatMember,
   ChatMessagesPage,
 } from "@/feature/chats/chat-types";
@@ -7,6 +8,22 @@ import { apiClient } from "@/shared/api/api-client";
 
 export async function getUsersChats(signal?: AbortSignal): Promise<Chat[]> {
   const response = await apiClient.get<Chat[]>("/chats", { signal });
+
+  return response.data;
+}
+
+export async function createDirectChat(
+  companionId: string,
+  signal?: AbortSignal,
+): Promise<CreatedChat> {
+  const response = await apiClient.post<CreatedChat>(
+    "/chats/direct",
+    companionId,
+    {
+      headers: { "Content-Type": "application/json" },
+      signal,
+    },
+  );
 
   return response.data;
 }
