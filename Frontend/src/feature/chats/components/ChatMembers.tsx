@@ -12,9 +12,10 @@ import { ChatAvatar } from "./ChatAvatar";
 
 type ChatMembersProps = {
   chatId: string;
+  refreshKey?: number;
 };
 
-export function ChatMembers({ chatId }: ChatMembersProps) {
+export function ChatMembers({ chatId, refreshKey = 0 }: ChatMembersProps) {
   const [members, setMembers] = useState<ChatMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,7 @@ export function ChatMembers({ chatId }: ChatMembersProps) {
     void loadMembers();
 
     return () => controller.abort();
-  }, [chatId, reloadKey]);
+  }, [chatId, refreshKey, reloadKey]);
 
   return (
     <aside className="chat-members-enter hidden h-full w-64 shrink-0 flex-col border-l border-[#29304e] bg-[#0e1428] xl:flex 2xl:w-72">

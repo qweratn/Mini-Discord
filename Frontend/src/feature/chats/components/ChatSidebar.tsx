@@ -95,7 +95,7 @@ export function ChatSidebar({
     return () => controller.abort();
   }, [onChatSelect, onChatsLoaded, reloadKey]);
 
-  function handleDirectChatCreated(chatId: string) {
+  function handleChatCreated(chatId: string) {
     pendingChatId.current = chatId;
     setReloadKey((current) => current + 1);
   }
@@ -237,7 +237,7 @@ export function ChatSidebar({
       <CreateChatDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        onDirectChatCreated={handleDirectChatCreated}
+        onChatCreated={handleChatCreated}
       />
     </aside>
   );

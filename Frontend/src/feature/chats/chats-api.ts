@@ -28,6 +28,30 @@ export async function createDirectChat(
   return response.data;
 }
 
+export async function createServerChat(
+  name: string,
+  signal?: AbortSignal,
+): Promise<CreatedChat> {
+  const response = await apiClient.post<CreatedChat>("/chats/server", name, {
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  return response.data;
+}
+
+export async function addChatMember(
+  chatId: string,
+  userId: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  await apiClient.put(
+    `/chats/${chatId}/members/${userId}`,
+    undefined,
+    { signal },
+  );
+}
+
 export async function getChatMembers(
   chatId: string,
   signal?: AbortSignal,

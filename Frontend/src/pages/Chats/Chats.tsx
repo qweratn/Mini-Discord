@@ -13,6 +13,7 @@ export default function Chats() {
   const { user } = useUser();
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+  const [membersRefreshKey, setMembersRefreshKey] = useState(0);
   const username = user?.username ?? user?.fullName ?? "Пользователь";
 
   const handleChatsLoaded = useCallback((loadedChats: Chat[]) => {
@@ -58,6 +59,7 @@ export default function Chats() {
               <ChatHeader
                 chat={activeChat}
                 onBack={() => setIsMobileChatOpen(false)}
+                onMemberAdded={() => setMembersRefreshKey((current) => current + 1)}
               />
               <ChatMessages
                 chatId={activeChat.chatId}
@@ -78,7 +80,11 @@ export default function Chats() {
         </section>
 
         {activeChat?.chatType === "server" && (
-          <ChatMembers key={activeChat.chatId} chatId={activeChat.chatId} />
+          <ChatMembers
+            key={activeChat.chatId}
+            chatId={activeChat.chatId}
+            refreshKey={membersRefreshKey}
+          />
         )}
       </div>
     </main>
