@@ -79,3 +79,14 @@ export async function getChatMessages(
 
   return response.data;
 }
+
+export async function sendChatMessage(
+  chatId: string,
+  content: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  await apiClient.post(`/chats/${chatId}/messages`, content, {
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+}
