@@ -159,19 +159,6 @@ public class AddChatMemberCommandTests :
     }
 
     [Fact]
-    public async Task HandleAddChatMember_UserIsNotOwner_ShouldThrow()
-    {
-        string exceptionCode = "user.not_owner";
-        string exceptionMessage = "Actor user is not a chat owner.";
-
-        ConflictException exception = await Assert.ThrowsAsync<ConflictException>(() =>
-            _mediator.Send(
-                new AddChatMemberCommand.Command(OtherUserClerkId, _owner.Id, _serverChat.Id)));
-        Assert.Equal(exceptionCode, exception.Code);
-        Assert.Equal(exceptionMessage, exception.Message);
-    }
-
-    [Fact]
     public async Task HandleAddChatMember_MemberAlreadyJoin_ShouldThrow()
     {
         string exceptionCode = "membership.already_joined";

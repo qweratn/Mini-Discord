@@ -50,13 +50,6 @@ public class AddChatMemberCommand
                     "Direct chat was not support.");
             }
 
-            if (chat.OwnerId != actorUser.Id)
-            {
-                throw new ConflictException(
-                    "user.not_owner",
-                    "Actor user is not a chat owner.");
-            }
-
             IReadOnlyList<ChatMembership> chatMemberships = await membershipsRepository
                 .GetByChatIdsAsync([chatId], cancellationToken);
 
