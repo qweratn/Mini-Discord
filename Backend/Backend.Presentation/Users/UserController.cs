@@ -1,5 +1,6 @@
 using Backend.Application.Users.Models;
 using Backend.Application.Users.RequestHandlers.Commands;
+using Backend.Application.Users.RequestHandlers.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -52,5 +53,18 @@ public class UserController : ControllerBase
         await mediator.Send(
             new SyncUserFromClerkCommand.Command(appUser), cancellationToken);
         return Ok();
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchUsers([FromQuery] string? filter)
+    {
+        string? clerkId = User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(clerkId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await mediator.Send(new GetUsersByQuery.Query(clerkId, filter)));
     }
 }

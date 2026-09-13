@@ -15,7 +15,7 @@ export function useApiClientAuth() {
       async (config) => {
         const token = await getToken();
 
-        if (token) {
+        if (token && !config.headers.has("Authorization")) {
           config.headers.set("Authorization", `Bearer ${token}`);
         }
 
