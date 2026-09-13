@@ -10,6 +10,7 @@ import Profile from "./pages/Profile/Profile";
 import SignIn from "./pages/SignIn/SignIn";
 import SignUp from "./pages/SignUp/SignUp";
 import VerifyOtp from "./pages/VerifyOtp/VerifyOtp";
+import {SignalRProvider} from "@/feature/chats/signalr/ChatSignalRProvider.tsx";
 
 function App() {
   const isApiReady = useApiClientAuth();
@@ -29,7 +30,10 @@ function App() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/chats" element={<Chats />} />
+        <Route path="/chats" element={
+            <SignalRProvider>
+                <Chats />
+            </SignalRProvider>} />
         <Route path="/profile" element={<Profile />} />
       </Route>
 

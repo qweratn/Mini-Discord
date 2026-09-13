@@ -18,12 +18,14 @@ import {
   getRequestErrorMessage,
 } from "@/feature/chats/chat-formatters";
 import { getUsersChats } from "@/feature/chats/chats-api";
-import type { Chat } from "@/feature/chats/chat-types";
+import type {Chat, ChatMessage} from "@/feature/chats/chat-types";
 import { cn } from "@/lib/utils";
 import { toastManager } from "@/lib/toast";
 
 import { ChatAvatar } from "./ChatAvatar";
 import { CreateChatDialog } from "./CreateChatDialog";
+import {useSignalR} from "@/feature/chats/signalr/ signalr-context.ts";
+import {HubConnectionState} from "@microsoft/signalr";
 
 type ChatSidebarProps = {
   activeChatId: string | null;
@@ -48,8 +50,14 @@ export function ChatSidebar({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const pendingChatId = useRef<string | null>(null);
   const username = user?.username ?? user?.fullName ?? "Пользователь";
+  const connection = useSignalR();
+    const chatSubscriptionsKey = chats
+        .map((chat) => chat.chatId)
+        .sort()
+        .join(",");
 
-  useEffect(() => {
+
+    useEffect(() => {
     const controller = new AbortController();
 
     async function loadChats() {
@@ -101,6 +109,73 @@ export function ChatSidebar({
     pendingChatId.current = chatId;
     setReloadKey((current) => current + 1);
   }
+
+  useEffect(() => {
+      if (
+          !connection ||
+          connection.state !== HubConnectionState.Connected
+      ) {
+          return;
+      }
+
+      const chatIds = chatSubscriptionsKey
+          ? chatSubscriptionsKey.split(",")
+          : [];
+
+      void Promise.allSettled(
+          chatIds.map((chatId) =>
+              connection.invoke(
+                  "SubscribeToChat",
+                  chatId,
+              ),
+          ),
+      );
+    }, [chats, connection]);
+
+    useEffect(() => {
+        if (!connection) {
+            return;
+        }
+
+        function handleMessageReceived(
+            message: ChatMessage,
+        ) {
+            setChats((currentChats) => {
+                const targetChat = currentChats.find(
+                    (chat) => chat.chatId === message.chatId,
+                );
+
+                if (!targetChat) {
+                    return currentChats;
+                }
+
+                const updatedChat: Chat = {
+                    ...targetChat,
+                    lastMessage: message.content,
+                    lastMessageAt: message.sentAt,
+                };
+
+                return [
+                    updatedChat,
+                    ...currentChats.filter(
+                        (chat) => chat.chatId !== message.chatId,
+                    ),
+                ];
+            });
+        }
+
+        connection.on(
+            "MessageReceived",
+            handleMessageReceived,
+        );
+
+        return () => {
+            connection.off(
+                "MessageReceived",
+                handleMessageReceived,
+            );
+        };
+    }, [connection]);
 
   return (
     <aside

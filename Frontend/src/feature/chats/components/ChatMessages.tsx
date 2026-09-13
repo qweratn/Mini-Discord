@@ -19,6 +19,7 @@ import { getChatMessages } from "@/feature/chats/chats-api";
 import type { ChatMessage } from "@/feature/chats/chat-types";
 
 import { MessageBubble } from "./MessageBubble";
+import {useSignalR} from "@/feature/chats/signalr/ signalr-context.ts";
 
 type ChatMessagesProps = {
   chatId: string;
@@ -54,6 +55,7 @@ export function ChatMessages({
   const [initialError, setInitialError] = useState<string | null>(null);
   const [paginationError, setPaginationError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const connection = useSignalR();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -93,6 +95,45 @@ export function ChatMessages({
   useEffect(() => {
     return () => paginationControllerRef.current?.abort();
   }, []);
+
+  useEffect(() => {
+      if (!connection) {
+          return;
+      }
+
+      function handleMessageReceived(
+          message: ChatMessage,
+      ) {
+
+          if (message.chatId !== chatId) {
+              return;
+          }
+
+          setMessages((currentMessages) => {
+              const messageAlreadyExists =
+                  currentMessages.some(
+                      (item) => item.id === message.id,
+                  );
+
+              if (messageAlreadyExists) {
+                  return currentMessages;
+              }
+
+              return [...currentMessages, message];
+          });
+      }
+
+      connection.on(
+          "MessageReceived",
+          handleMessageReceived,
+      );
+
+      return () => {
+          connection.off(
+              "MessageReceived",
+              handleMessageReceived,
+          );
+      };}, [chatId, connection]);
 
   useLayoutEffect(() => {
     const container = scrollContainerRef.current;
