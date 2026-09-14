@@ -2,6 +2,8 @@
 
 Mini Discord is a full-stack real-time chat application inspired by Discord. It supports direct chats, server chats, user search, member management, message history, and live message updates with SignalR.
 
+![Mini Discord home page](Frontend/public/hero.png)
+
 ## Stack
 
 ### Backend
