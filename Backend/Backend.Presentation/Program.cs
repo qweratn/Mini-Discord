@@ -108,13 +108,17 @@ string authority = builder.Configuration["Clerk:Authority"] ??
                    throw new InvalidOperationException("Clerk:Authority is not configured.");
 
 const string frontendCors = "FrontendCors";
+string[] allowedOrigins =
+    builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(frontendCors, policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173")
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
