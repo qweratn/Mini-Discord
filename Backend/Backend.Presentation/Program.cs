@@ -1,3 +1,4 @@
+using System.Net;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,12 +12,25 @@ using Backend.Presentation.Outbox;
 using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
+
+    options.KnownIPNetworks.Add(
+        new System.Net.IPNetwork(
+            IPAddress.Parse("172.30.0.0"),
+            24));
+});
 
 builder.Services.AddProblemDetails(options =>
 {
@@ -108,13 +122,17 @@ string authority = builder.Configuration["Clerk:Authority"] ??
                    throw new InvalidOperationException("Clerk:Authority is not configured.");
 
 const string frontendCors = "FrontendCors";
+string[] allowedOrigins =
+    builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(frontendCors, policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173")
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -196,6 +214,8 @@ builder.Services.AddHostedService<OutboxBackgroundService>();
 
 WebApplication app = builder.Build();
 
+app.UseForwardedHeaders();
+
 await using (AsyncServiceScope scope =
              app.Services.CreateAsyncScope())
 {
@@ -211,8 +231,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
 
 app.UseCors(frontendCors);
 
