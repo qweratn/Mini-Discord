@@ -1,0 +1,68 @@
+name: Build release
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions: 
+      contents: read
+      packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build_release:
+    name: Build and publish images
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Backend
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Backend
+          file: ./Backend/Dockerfile
+          push: true
+          tags: ghcr.io/qweratn/mini-discord-backend:${{ github.sha }}
+
+      - name: Build Frontend
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Frontend
+          file: ./Frontend/Dockerfile
+          build-args: |
+            CLERK_PUBLISHABLE_VALUE = ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
+            API_URL = /api
+            SIGNALR_URL = /hubs/chat
+          push: true
+          tags: ghcr.io/qweratn/mini-discord-frontend:${{ github.sha }}
+
+      - name: Show release summary
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          echo "## Release is ready" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit SHA: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Backend: ghcr.io/qweratn/mini-discord-backend:$RELEASE_SHA" >>
+          "$GITHUB_STEP_SUMMARY"
+          echo "Frontend: ghcr.io/qweratn/mini-discord-frontend:$RELEASE_SHA" >>
+          "$GITHUB_STEP_SUMMARY"
+          
+    
