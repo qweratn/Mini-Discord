@@ -23,17 +23,11 @@ jobs:
 
     steps:
       - name: Validate release SHA
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
         run: |
-          if [[ -z ${{ inputs.release_sha }} ]]; then
-            echo "SHA is empty"
-            exit 1
-          fi
-          if [[ ${{ inputs.release_sha }} -ne 40 ]]; then
-            echo "SHA should be 40 symbols length"
-            exit 1
-          fi
-          if [[ ! ${{ inputs.release_sha }} =~ ^[0-9a-f]+$ ]]; then
-            echo "SHA can contain only characters 0-9 and a-f"
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::release_sha must be a full 40-character commit SHA"
             exit 1
           fi
 
