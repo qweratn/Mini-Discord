@@ -1,7 +1,6 @@
 import { useUser } from "@clerk/react";
 import {
   ChevronRightIcon,
-  SearchIcon,
   SquarePenIcon,
   UsersRoundIcon,
 } from "lucide-react";
@@ -10,7 +9,6 @@ import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -200,19 +198,6 @@ export function ChatSidebar({
         >
           <SquarePenIcon className="size-5" />
         </Button>
-      </div>
-
-      <div className="px-5">
-        <div className="relative">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#7d839a]" />
-          <Input
-            type="search"
-            aria-label="Поиск чатов"
-            placeholder="Поиск"
-            readOnly
-            className="h-11 border-[#303958] bg-[#12192f] pl-10 text-white shadow-none placeholder:text-[#747b94] focus-visible:border-[#5263cf] focus-visible:ring-[#5263cf]/20"
-          />
-        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-7">
