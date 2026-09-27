@@ -15,6 +15,12 @@ concurrency:
   group: production
   cancel-in-progress: false
 
+env:
+  VPS_HOST: ${{ vars.VPS_HOST }}
+  VPS_PORT: ${{ vars.VPS_PORT }}
+  VPS_USER: ${{ vars.VPS_USER }}
+  RELEASE_SHA: ${{ inputs.release_sha }}
+
 jobs:
   deploy_release:
     name: Deploy images
@@ -23,8 +29,6 @@ jobs:
 
     steps:
       - name: Validate release SHA
-        env:
-          RELEASE_SHA: ${{ inputs.release_sha }}
         run: |
           if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::release_sha must be a full 40-character commit SHA"
@@ -43,10 +47,6 @@ jobs:
           chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Test SSH connection
-        env:
-          VPS_HOST: ${{ vars.VPS_HOST }}
-          VPS_PORT: ${{ vars.VPS_PORT }}
-          VPS_USER: ${{ vars.VPS_USER }}
         run: |
           ssh \
             -i "$HOME/.ssh/deploy_key" \
@@ -57,4 +57,47 @@ jobs:
             -o ConnectTimeout=10 \
             "$VPS_USER@$VPS_HOST" \
             'whoami && hostname && docker --version && docker compose version'
+          
+      - name: Check server readiness
+        run: |
+          set -euo pipefail
+          test -d /opt/mini-discord
+          test -f /opt/mini-discord/docker-compose.yaml
+          test -f /opt/mini-discord/.env
+          cd /opt/mini-discord
+          docker compose config --quiet
+          docker compose ps postgres
+          df -h /
+
+      - name: Install images
+        run: |
+          ssh \
+            -i "$HOME/.ssh/deploy_key" \
+            -p "$VPS_PORT" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=10 \
+            "$VPS_USER@$VPS_HOST" \
+            bash -s -- "$RELEASE_SHA" <<'REMOTE'
+            set -euo pipefail
+
+          release_sha="$1"
+
+          backend_image="ghcr.io/qweratn/mini-discord-backend:$release_sha"
+          frontend_image="ghcr.io/qweratn/mini-discord-frontend:$release_sha"
+
+          echo "Pulling backend image..."
+          docker pull "$backend_image"
+
+          echo "Pulling frontend image..."
+          docker pull "$frontend_image"
+
+          echo "Verifying downloaded images..."
+          docker image inspect "$backend_image" >/dev/null
+          docker image inspect "$frontend_image" >/dev/null
+
+          echo "Both release images are available locally"
+          REMOTE
+          
           
