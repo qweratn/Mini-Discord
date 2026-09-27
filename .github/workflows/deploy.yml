@@ -28,7 +28,7 @@ jobs:
             echo "SHA is empty"
             exit 1
           fi
-          if [[ ${#RELEASE_SHA} -ne 40 ]]; then
+          if [[ ${{ inputs.release_sha }} -ne 40 ]]; then
             echo "SHA should be 40 symbols length"
             exit 1
           fi
