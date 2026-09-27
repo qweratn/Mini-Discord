@@ -8,7 +8,7 @@ on:
         required: true
         type: string
 
-permissions: 
+permissions:
   contents: read
 
 concurrency:
@@ -57,19 +57,51 @@ jobs:
             -o ConnectTimeout=10 \
             "$VPS_USER@$VPS_HOST" \
             'whoami && hostname && docker --version && docker compose version'
-          
+
       - name: Check server readiness
         run: |
+          ssh \
+            -i "$HOME/.ssh/deploy_key" \
+            -p "$VPS_PORT" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=10 \
+            "$VPS_USER@$VPS_HOST" \
+            bash -s <<'REMOTE'
           set -euo pipefail
+
+          echo "Checking application directory..."
           test -d /opt/mini-discord
+
+          echo "Checking Compose file..."
           test -f /opt/mini-discord/docker-compose.yaml
+
+          echo "Checking environment file..."
           test -f /opt/mini-discord/.env
+
           cd /opt/mini-discord
+
+          echo "Validating Compose configuration..."
           docker compose config --quiet
-          docker compose ps postgres
+
+          echo "Checking PostgreSQL container..."
+          postgres_container="$(docker compose ps -q --status running postgres)"
+
+          if [[ -z "$postgres_container" ]]; then
+            echo "PostgreSQL container is not running"
+            exit 1
+          fi
+
+          echo "PostgreSQL container is running: $postgres_container"
+
+          echo "Checking disk space..."
           df -h /
 
-      - name: Install images
+          echo "Server preflight completed successfully"
+          REMOTE
+
+      - name: Pull release images
         run: |
           ssh \
             -i "$HOME/.ssh/deploy_key" \
@@ -80,7 +112,7 @@ jobs:
             -o ConnectTimeout=10 \
             "$VPS_USER@$VPS_HOST" \
             bash -s -- "$RELEASE_SHA" <<'REMOTE'
-            set -euo pipefail
+          set -euo pipefail
 
           release_sha="$1"
 
@@ -99,5 +131,3 @@ jobs:
 
           echo "Both release images are available locally"
           REMOTE
-          
-          
