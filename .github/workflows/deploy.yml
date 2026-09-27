@@ -25,7 +25,7 @@ jobs:
   deploy_release:
     name: Deploy images
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Validate release SHA
@@ -85,6 +85,10 @@ jobs:
           echo "Validating Compose configuration..."
           docker compose config --quiet
 
+          echo "Checking required commands..."
+          command -v docker >/dev/null
+          command -v curl >/dev/null
+
           echo "Checking PostgreSQL container..."
           postgres_container="$(docker compose ps -q --status running postgres)"
 
@@ -132,7 +136,8 @@ jobs:
           echo "Both release images are available locally"
           REMOTE
 
-      - name: Save images
+      - name: Activate release
+        id: activate_release
         run: |
           ssh \
             -i "$HOME/.ssh/deploy_key" \
@@ -142,209 +147,153 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=10 \
             "$VPS_USER@$VPS_HOST" \
-            bash -s <<'REMOTE'
+            bash -s -- "$RELEASE_SHA" <<'REMOTE'
           set -euo pipefail
 
-          echo "Saving current images as previous"
-          docker image inspect "$backend_image" >/dev/null
-          docker image inspect "$frontend_image" >/dev/null
-          docker tag \
-              mini-discord-backend:local \
-              mini-discord-backend:previous
-          docker tag \
-              mini-discord-frontend:local \
-              mini-discord-frontend:previous
-
+          release_sha="$1"
           backend_image="ghcr.io/qweratn/mini-discord-backend:$release_sha"
           frontend_image="ghcr.io/qweratn/mini-discord-frontend:$release_sha"
-          echo "Tagging release images as local..."
-          docker tag \
-            "$backend_image" \
-            mini-discord-backend:local
-          docker tag \
-            "$frontend_image" \
-            mini-discord-frontend:local
 
-          echo "Compare images tags"
+          cd /opt/mini-discord
+
+          wait_for_health() {
+            local label="$1"
+
+            for attempt in {1..12}; do
+              echo "$label health-check attempt $attempt of 12"
+
+              if curl \
+                --fail \
+                --silent \
+                --show-error \
+                --max-time 5 \
+                http://127.0.0.1/api/health > /dev/null; then
+                echo "$label health-check passed"
+                return 0
+              fi
+
+              sleep 5
+            done
+
+            echo "$label health-check failed"
+            return 1
+          }
+
+          rollback_release() {
+            echo "Restoring previous application images..."
+
+            docker image inspect mini-discord-backend:previous >/dev/null || return 1
+            docker image inspect mini-discord-frontend:previous >/dev/null || return 1
+
+            docker tag \
+              mini-discord-backend:previous \
+              mini-discord-backend:local || return 1
+
+            docker tag \
+              mini-discord-frontend:previous \
+              mini-discord-frontend:local || return 1
+
+            docker compose up \
+              -d \
+              --no-build \
+              --pull never \
+              --force-recreate \
+              --no-deps \
+              backend frontend || return 1
+
+            wait_for_health "Rollback"
+          }
+
+          echo "Verifying current and release images..."
+          docker image inspect mini-discord-backend:local >/dev/null
+          docker image inspect mini-discord-frontend:local >/dev/null
+          docker image inspect "$backend_image" >/dev/null
+          docker image inspect "$frontend_image" >/dev/null
+
+          echo "Saving current images as previous..."
+          docker tag \
+            mini-discord-backend:local \
+            mini-discord-backend:previous
+
+          docker tag \
+            mini-discord-frontend:local \
+            mini-discord-frontend:previous
+
+          echo "Tagging release images as local..."
+          docker tag "$backend_image" mini-discord-backend:local
+          docker tag "$frontend_image" mini-discord-frontend:local
+
           release_backend_id="$(docker image inspect "$backend_image" --format '{{.Id}}')"
           release_frontend_id="$(docker image inspect "$frontend_image" --format '{{.Id}}')"
           local_backend_id="$(docker image inspect mini-discord-backend:local --format '{{.Id}}')"
           local_frontend_id="$(docker image inspect mini-discord-frontend:local --format '{{.Id}}')"
+
           if [[ "$release_backend_id" != "$local_backend_id" ]]; then
             echo "Backend image tag verification failed"
             exit 1
           fi
+
           if [[ "$release_frontend_id" != "$local_frontend_id" ]]; then
             echo "Frontend image tag verification failed"
             exit 1
           fi
-          echo "Release images were tagged successfully"
 
-      - name: Deploy release containers
-        run: |
-          ssh \
-            -i "$HOME/.ssh/deploy_key" \
-            -p "$VPS_PORT" \
-            -o BatchMode=yes \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=10 \
-            "$VPS_USER@$VPS_HOST" \
-            bash -s <<'REMOTE'
-          set -euo pipefail
+          echo "Recreating backend and frontend containers..."
 
-          cd /opt/mini-discord
-
-          echo "Recreating backend and frontend containters"
-          docker compose up \
+          if ! docker compose up \
             -d \
             --no-build \
             --pull never \
             --force-recreate \
             --no-deps \
-            backend frontend
+            backend frontend; then
+            echo "Container deployment failed. Starting rollback..."
 
-          echo "Current app containers: "
-          docker compose ps backend frontend
-          REMOTE
-
-      - name: Health check
-        id: health_check
-        continue-on-error: true
-        run: |
-          ssh \
-            -i "$HOME/.ssh/deploy_key" \
-            -p "$VPS_PORT" \
-            -o BatchMode=yes \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=10 \
-            "$VPS_USER@$VPS_HOST" \
-            bash -s <<'REMOTE'
-            set -euo pipefail
-
-          cd /opt/mini-discord
-
-          echo "Checking container states..."
-          docker compose ps postgres backend frontend
-
-          echo "Waiting for application health endpoint..."
-
-          for attempt in {1..12}; do
-            echo "Health-check attempt $attempt of 12"
-
-            if curl \
-              --fail \
-              --silent \
-              --show-error \
-              --max-time 5 \
-              http://127.0.0.1/api/health > /dev/null; then
-              echo "Application health-check passed"
-              exit 0
-            fi
-
-            sleep 5
-          done
-
-          echo "Application health-check failed"
-
-          docker compose ps postgres backend frontend
-
-          exit 1
-          REMOTE
-
-      - name: Rollback changes
-        if: steps.health_check.outcome == 'failure'
-        run: |
-          ssh \
-            -i "$HOME/.ssh/deploy_key" \
-            -p "$VPS_PORT" \
-            -o BatchMode=yes \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=10 \
-            "$VPS_USER@$VPS_HOST" \
-            bash -s <<'REMOTE'
-            set -euo pipefail
-
-          cd /opt/mini-discord
-
-          echo "Health-check failed. Starting rollback..."
-          docker image inspect mini-discord-backend:previous >/dev/null
-          docker image inspect mini-discord-frontend:previous >/dev/null
-          docker tag \
-            mini-discord-backend:previous \
-            mini-discord-backend:local
-          docker tag \
-            mini-discord-frontend:previous \
-            mini-discord-frontend:local
-          docker compose up \
-            -d \
-            --no-build \
-            --pull never \
-            --force-recreate \
-            --no-deps \
-            backend frontend
-
-          for attempt in {1..12}; do
-            echo "Rollback health-check attempt $attempt of 12"
-
-            if curl \
-              --fail \
-              --silent \
-              --show-error \
-              --max-time 5 \
-              http://127.0.0.1/api/health > /dev/null; then
+            if rollback_release; then
               echo "Rollback completed successfully"
-              exit 0
+            else
+              echo "Rollback failed"
             fi
 
-            sleep 5
-          done
+            exit 1
+          fi
 
-          echo "Rollback health-check failed"
-          exit 1
+          docker compose ps postgres backend frontend
 
-      - name: Record deployed release
-        run: |
-          ssh \
-            -i "$HOME/.ssh/deploy_key" \
-            -p "$VPS_PORT" \
-            -o BatchMode=yes \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=10 \
-            "$VPS_USER@$VPS_HOST" \
-            bash -s <<'REMOTE'
-            set -euo pipefail
+          if ! wait_for_health "Release"; then
+            echo "Release health-check failed. Starting rollback..."
 
-          release_sha="$1"
+            if rollback_release; then
+              echo "Rollback completed successfully"
+            else
+              echo "Rollback failed"
+            fi
 
-          cd /opt/mini-discord
+            exit 1
+          fi
 
           printf '%s\n' "$release_sha" > .deployed-release.tmp
           mv .deployed-release.tmp .deployed-release
 
-          echo "Recorded deployed release: $release_sha"
+          echo "Deployment completed successfully: $release_sha"
+          REMOTE
 
       - name: Show deployment summary
         if: always()
         env:
-          HEALTH_OUTCOME: ${{ steps.health_check.outcome }}
+          DEPLOY_OUTCOME: ${{ steps.activate_release.outcome }}
         run: |
           echo "## Production deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Release SHA: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "Server: $VPS_HOST" >> "$GITHUB_STEP_SUMMARY"
-          echo "Health-check: $HEALTH_OUTCOME" >> "$GITHUB_STEP_SUMMARY"
+          echo "Activation: $DEPLOY_OUTCOME" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
 
-          if [[ "$HEALTH_OUTCOME" == "success" ]]; then
+          if [[ "$DEPLOY_OUTCOME" == "success" ]]; then
             echo "Result: deployment successful" >> "$GITHUB_STEP_SUMMARY"
-          elif [[ "$HEALTH_OUTCOME" == "failure" ]]; then
-            echo "Result: deployment failed; rollback attempted" >>
-            "$GITHUB_STEP_SUMMARY"
+          elif [[ "$DEPLOY_OUTCOME" == "failure" ]]; then
+            echo "Result: deployment failed; inspect the activation logs for rollback status" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Result: deployment did not reach health-check" >>
-            "$GITHUB_STEP_SUMMARY"
+            echo "Result: deployment did not reach the activation step" >> "$GITHUB_STEP_SUMMARY"
           fi
-          
