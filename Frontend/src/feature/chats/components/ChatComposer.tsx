@@ -14,13 +14,11 @@ const MAX_MESSAGE_LENGTH = 2000;
 type ChatComposerProps = {
   chatId: string;
   chatName: string;
-  onMessageSent: () => void;
 };
 
 export function ChatComposer({
   chatId,
   chatName,
-  onMessageSent,
 }: ChatComposerProps) {
   const [content, setContent] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -35,7 +33,6 @@ export function ChatComposer({
       setIsSending(true);
       await sendChatMessage(chatId, normalizedContent);
       setContent("");
-      onMessageSent();
     } catch (error: unknown) {
       toastManager.add({
         type: "error",

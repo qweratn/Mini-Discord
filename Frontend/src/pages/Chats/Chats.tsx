@@ -14,8 +14,6 @@ export default function Chats() {
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [membersRefreshKey, setMembersRefreshKey] = useState(0);
-  const [messagesRefreshKey, setMessagesRefreshKey] = useState(0);
-  const [chatsRefreshKey, setChatsRefreshKey] = useState(0);
   const username = user?.username ?? user?.fullName ?? "Пользователь";
 
   const handleChatsLoaded = useCallback((loadedChats: Chat[]) => {
@@ -43,7 +41,6 @@ export default function Chats() {
         <ChatSidebar
           activeChatId={activeChat?.chatId ?? null}
           isMobileChatOpen={isMobileChatOpen}
-          refreshKey={chatsRefreshKey}
           onChatSelect={handleChatSelect}
           onChatsLoaded={handleChatsLoaded}
         />
@@ -67,15 +64,10 @@ export default function Chats() {
               <ChatMessages
                 chatId={activeChat.chatId}
                 currentUsername={username}
-                refreshKey={messagesRefreshKey}
               />
               <ChatComposer
                 chatId={activeChat.chatId}
                 chatName={activeChat.name}
-                onMessageSent={() => {
-                  setMessagesRefreshKey((current) => current + 1);
-                  setChatsRefreshKey((current) => current + 1);
-                }}
               />
             </div>
           ) : (

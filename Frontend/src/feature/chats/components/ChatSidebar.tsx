@@ -28,7 +28,6 @@ import {HubConnectionState} from "@microsoft/signalr";
 type ChatSidebarProps = {
   activeChatId: string | null;
   isMobileChatOpen: boolean;
-  refreshKey?: number;
   onChatSelect: (chat: Chat) => void;
   onChatsLoaded: (chats: Chat[]) => void;
 };
@@ -36,7 +35,6 @@ type ChatSidebarProps = {
 export function ChatSidebar({
   activeChatId,
   isMobileChatOpen,
-  refreshKey = 0,
   onChatSelect,
   onChatsLoaded,
 }: ChatSidebarProps) {
@@ -101,7 +99,7 @@ export function ChatSidebar({
     void loadChats();
 
     return () => controller.abort();
-  }, [onChatSelect, onChatsLoaded, refreshKey, reloadKey]);
+  }, [onChatSelect, onChatsLoaded, reloadKey]);
 
   function handleChatCreated(chatId: string) {
     pendingChatId.current = chatId;
@@ -128,7 +126,7 @@ export function ChatSidebar({
               ),
           ),
       );
-    }, [chats, connection]);
+    }, [chatSubscriptionsKey, connection]);
 
     useEffect(() => {
         if (!connection) {

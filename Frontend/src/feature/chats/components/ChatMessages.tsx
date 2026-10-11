@@ -24,7 +24,6 @@ import {useSignalR} from "@/feature/chats/signalr/ signalr-context.ts";
 type ChatMessagesProps = {
   chatId: string;
   currentUsername: string;
-  refreshKey?: number;
 };
 
 type PendingScrollAdjustment = {
@@ -35,7 +34,6 @@ type PendingScrollAdjustment = {
 export function ChatMessages({
   chatId,
   currentUsername,
-  refreshKey = 0,
 }: ChatMessagesProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
@@ -90,7 +88,7 @@ export function ChatMessages({
     void loadInitialMessages();
 
     return () => controller.abort();
-  }, [chatId, refreshKey, reloadKey]);
+  }, [chatId, reloadKey]);
 
   useEffect(() => {
     return () => paginationControllerRef.current?.abort();
